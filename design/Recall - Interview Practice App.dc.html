@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0}
+  ::selection{background:rgba(59,87,214,0.16)}
+</style>
+</helmet>
+
+<div style="font-family:'Schibsted Grotesk',sans-serif;background:#e7e5df;min-width:100%;width:max-content;min-height:100vh;box-sizing:border-box;padding:56px;color:#1B1A17;-webkit-font-smoothing:antialiased">
+<div style="{{ themeVars }}">
+
+<!-- ===== TITLE / LEGEND ===== -->
+<div style="max-width:760px;margin-bottom:8px">
+  <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px">
+    <div style="width:34px;height:34px;border-radius:10px;background:var(--accent,#3B57D6);display:flex;align-items:center;justify-content:center;flex:none">
+      <div style="width:16px;height:16px;border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center">
+        <div style="width:4px;height:4px;border-radius:50%;background:#fff"></div>
+      </div>
+    </div>
+    <span style="font-size:24px;font-weight:800;letter-spacing:-0.03em">Recall</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8A867C;border:1px solid #D6D2C9;border-radius:999px;padding:3px 9px;letter-spacing:0.02em">Interview practice</span>
+  </div>
+  <h1 style="font-size:30px;font-weight:700;letter-spacing:-0.025em;margin:0 0 8px;line-height:1.1">Deliberate practice for interviews</h1>
+  <p style="font-size:15px;line-height:1.55;color:#56534B;margin:0">A personal question bank with on-demand practice (text or voice), AI feedback, and self-rated spaced repetition. Synced across a web app and a native mobile app. Design exploration for the PRD — web screens followed by their mobile counterparts.</p>
+  <div style="display:flex;gap:22px;margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#8A867C;flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:12px;border-radius:3px;background:var(--accent,#3B57D6)"></span>Accent</span>
+    <span style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:12px;border-radius:3px;background:#1B1A17"></span>Ink</span>
+    <span style="display:flex;align-items:center;gap:7px"><span style="width:12px;height:12px;border-radius:3px;background:#fff;border:1px solid #D6D2C9"></span>Surface</span>
+    <span>Schibsted Grotesk · JetBrains Mono</span>
+  </div>
+</div>
+
+<!-- ===== WEB SECTION ===== -->
+<div style="display:flex;align-items:center;gap:12px;margin:46px 0 24px">
+  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.14em;color:#56534B;text-transform:uppercase">Web app</span>
+  <span style="flex:none;width:7px;height:7px;border-radius:50%;background:#C9C5BB"></span>
+  <span style="font-size:13px;color:#8A867C">Desktop · 1180px</span>
+</div>
+
+<div style="display:flex;gap:48px;align-items:flex-start">
+
+  <!-- FRAME: LOGIN -->
+  <div style="flex:none;width:1180px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">01 · Login</div>
+    <div style="background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden">
+      <!-- browser chrome -->
+      <div style="height:42px;background:#F1EFEA;border-bottom:1px solid #E2DFD8;display:flex;align-items:center;padding:0 16px;gap:8px">
+        <div style="display:flex;gap:7px"><span style="width:11px;height:11px;border-radius:50%;background:#E0857E"></span><span style="width:11px;height:11px;border-radius:50%;background:#E6C07B"></span><span style="width:11px;height:11px;border-radius:50%;background:#A8C99A"></span></div>
+        <div style="flex:1;display:flex;justify-content:center"><div style="background:#fff;border:1px solid #E2DFD8;border-radius:7px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A867C;min-width:300px;text-align:center">recall.app/login</div></div>
+      </div>
+      <!-- screen -->
+      <div style="height:732px;display:flex">
+        <!-- left brand panel -->
+        <div style="width:46%;background:#1B1A17;color:#fff;padding:52px 56px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;position:relative;z-index:1">
+            <div style="width:30px;height:30px;border-radius:9px;background:var(--accent,#3B57D6);display:flex;align-items:center;justify-content:center;flex:none"><div style="width:14px;height:14px;border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:3.5px;height:3.5px;border-radius:50%;background:#fff"></div></div></div>
+            <span style="font-size:19px;font-weight:700;letter-spacing:-0.02em">Recall</span>
+          </div>
+          <div style="position:relative;z-index:1">
+            <div style="font-size:32px;font-weight:700;letter-spacing:-0.03em;line-height:1.18;margin-bottom:18px">Stop hoping the answer comes out right.<br>Rehearse until it does.</div>
+            <p style="font-size:15px;line-height:1.6;color:#A8A49B;margin:0;max-width:380px">Capture every question you face, practice out loud on demand, and let spaced repetition resurface the ones you fumbled.</p>
+          </div>
+          <div style="display:flex;gap:28px;position:relative;z-index:1;font-family:'JetBrains Mono',monospace">
+            <div><div style="font-size:26px;font-weight:600;color:#fff">47</div><div style="font-size:11px;color:#8E8A81;letter-spacing:0.04em">questions</div></div>
+            <div><div style="font-size:26px;font-weight:600;color:#fff">12</div><div style="font-size:11px;color:#8E8A81;letter-spacing:0.04em">day streak</div></div>
+            <div><div style="font-size:26px;font-weight:600;color:#fff">6.8</div><div style="font-size:11px;color:#8E8A81;letter-spacing:0.04em">avg score</div></div>
+          </div>
+          <div style="position:absolute;right:-120px;top:-80px;width:360px;height:360px;border-radius:50%;border:1px solid rgba(255,255,255,0.07)"></div>
+          <div style="position:absolute;right:-40px;top:40px;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,0.06)"></div>
+        </div>
+        <!-- right form -->
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px">
+          <div style="width:360px">
+            <h2 style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin:0 0 6px">Welcome back</h2>
+            <p style="font-size:14px;color:#8A867C;margin:0 0 28px">Sign in to sync your bank across devices.</p>
+            <button style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:#fff;border:1px solid #DDD9D0;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;color:#1B1A17;cursor:pointer;margin-bottom:12px">
+              <span style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#4285F4,#34A853 55%,#FBBC05 80%,#EA4335);flex:none"></span>Continue with Google
+            </button>
+            <div style="display:flex;align-items:center;gap:12px;margin:22px 0;color:#B7B3A9;font-size:12px"><span style="flex:1;height:1px;background:#E7E4DE"></span>or<span style="flex:1;height:1px;background:#E7E4DE"></span></div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#56534B;margin-bottom:7px">Email</label>
+            <input value="jesus@gmail.com" style="width:100%;border:1px solid #E2DFD8;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;color:#1B1A17;margin-bottom:16px;background:#FBFAF8">
+            <label style="display:block;font-size:12px;font-weight:600;color:#56534B;margin-bottom:7px">Password</label>
+            <input type="password" value="............" style="width:100%;border:1px solid #E2DFD8;border-radius:11px;padding:12px 14px;font-family:inherit;font-size:14px;color:#1B1A17;margin-bottom:22px;background:#FBFAF8">
+            <button style="width:100%;padding:13px;background:var(--accent,#3B57D6);color:#fff;border:none;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Sign in</button>
+            <p style="font-size:13px;color:#8A867C;text-align:center;margin:18px 0 0">New here? <span style="color:var(--accent-ink,#2C3FA8);font-weight:600">Create an account</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAME: HOME -->
+  <div style="flex:none;width:1180px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">02 · Home / what's due</div>
+    <div style="background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden">
+      <div style="height:42px;background:#F1EFEA;border-bottom:1px solid #E2DFD8;display:flex;align-items:center;padding:0 16px;gap:8px">
+        <div style="display:flex;gap:7px"><span style="width:11px;height:11px;border-radius:50%;background:#E0857E"></span><span style="width:11px;height:11px;border-radius:50%;background:#E6C07B"></span><span style="width:11px;height:11px;border-radius:50%;background:#A8C99A"></span></div>
+        <div style="flex:1;display:flex;justify-content:center"><div style="background:#fff;border:1px solid #E2DFD8;border-radius:7px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A867C;min-width:300px;text-align:center">recall.app/home</div></div>
+      </div>
+      <div style="height:732px;display:flex;background:#F7F6F3">
+        <!-- sidebar -->
+        <aside style="width:236px;flex:none;background:#FBFAF8;border-right:1px solid #E7E4DE;display:flex;flex-direction:column;padding:20px 14px">
+          <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 22px">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--accent,#3B57D6);display:flex;align-items:center;justify-content:center;flex:none"><div style="width:13px;height:13px;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:3px;height:3px;border-radius:50%;background:#fff"></div></div></div>
+            <span style="font-size:17px;font-weight:700;letter-spacing:-0.02em">Recall</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;background:var(--accent-tint,#ECEEFB);color:var(--accent-ink,#2C3FA8);font-size:14px;font-weight:600;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent,#3B57D6)"></span>Home</div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#56534B;font-size:14px;font-weight:500;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #B7B3A9"></span>Study</div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#56534B;font-size:14px;font-weight:500;margin-bottom:3px"><span style="width:9px;height:7px;border:1.5px solid #B7B3A9;border-radius:2px"></span>Question bank</div>
+          <div style="margin-top:14px"><button style="width:100%;display:flex;align-items:center;gap:9px;padding:10px 12px;background:#fff;border:1px solid #E2DFD8;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;color:#1B1A17;cursor:pointer"><span style="font-size:17px;line-height:1;color:var(--accent,#3B57D6)">+</span>New note</button></div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-top:1px solid #EFEDE8">
+            <div style="width:30px;height:30px;border-radius:50%;background:#E4E1DA;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#56534B">J</div>
+            <div style="line-height:1.2"><div style="font-size:13px;font-weight:600">Jesús</div><div style="font-size:11px;color:#9B978C">S&amp;O · Product</div></div>
+          </div>
+        </aside>
+        <!-- main -->
+        <main style="flex:1;padding:30px 34px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px">
+            <div>
+              <div style="font-size:13px;color:#9B978C;font-family:'JetBrains Mono',monospace;letter-spacing:0.02em;margin-bottom:5px">MONDAY · JUNE 23</div>
+              <h2 style="font-size:25px;font-weight:700;letter-spacing:-0.025em;margin:0">Good morning, Jesús</h2>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E7E4DE;border-radius:999px;padding:7px 15px;font-size:13px;color:#56534B"><span style="width:8px;height:8px;border-radius:50%;background:#E0A23B"></span>12-day streak</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:22px">
+            <!-- due panel -->
+            <div style="background:#1B1A17;border-radius:var(--radius,14px);padding:26px;color:#fff;position:relative;overflow:hidden">
+              <div style="font-size:13px;color:#A8A49B;letter-spacing:0.03em;margin-bottom:6px">DUE TODAY</div>
+              <div style="display:flex;align-items:flex-end;gap:14px;margin-bottom:20px">
+                <span style="font-size:58px;font-weight:700;letter-spacing:-0.04em;line-height:0.9">3</span>
+                <span style="font-size:14px;color:#A8A49B;padding-bottom:8px">questions ready<br>to practice</span>
+              </div>
+              <button style="display:inline-flex;align-items:center;gap:9px;padding:12px 20px;background:var(--accent,#3B57D6);color:#fff;border:none;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:6px">Study <span style="font-size:15px">→</span></button>
+              <div style="font-size:12px;color:#8E8A81;margin-top:8px">On-demand · one question at a time, no fixed session</div>
+              <div style="position:absolute;right:-60px;bottom:-90px;width:240px;height:240px;border-radius:50%;border:1px solid rgba(255,255,255,0.07)"></div>
+            </div>
+            <!-- stats -->
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);padding:18px">
+                <div style="font-size:12px;color:#9B978C;margin-bottom:10px">THIS WEEK</div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><div><div style="font-size:28px;font-weight:700;letter-spacing:-0.02em;font-family:'JetBrains Mono',monospace">28</div><div style="font-size:12px;color:#8A867C">reps</div></div><div style="text-align:right"><div style="font-size:28px;font-weight:700;letter-spacing:-0.02em;font-family:'JetBrains Mono',monospace;color:#1F8A50">+0.6</div><div style="font-size:12px;color:#8A867C">avg score</div></div></div>
+              </div>
+              <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);padding:18px;flex:1">
+                <div style="font-size:12px;color:#9B978C;margin-bottom:12px">BY CATEGORY</div>
+                <sc-for list="{{ categories }}" as="c" hint-placeholder-count="4">
+                  <div style="margin-bottom:11px">
+                    <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span style="font-weight:600;color:#3D3A33">{{ c.name }}</span><span style="font-family:'JetBrains Mono',monospace;color:#9B978C">{{ c.count }}</span></div>
+                    <div style="height:6px;background:#F0EEE9;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ c.pct }}%;background:{{ c.fg }};border-radius:999px"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <!-- due queue -->
+          <div style="margin-top:24px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px"><span style="font-size:14px;font-weight:700;letter-spacing:-0.01em">Up next</span><span style="font-size:13px;color:var(--accent-ink,#2C3FA8);font-weight:600">View bank →</span></div>
+            <sc-for list="{{ due }}" as="q" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid #E7E4DE;border-radius:12px;padding:14px 18px;margin-bottom:10px">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#B7B3A9;width:42px;flex:none">{{ q.id }}</span>
+                <span style="flex:none;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:{{ q.catBg }};color:{{ q.catFg }}">{{ q.cat }}</span>
+                <span style="flex:1;font-size:14px;color:#2D2B26;font-weight:500">{{ q.text }}</span>
+                <span style="flex:none;font-size:12px;color:#9B978C;font-family:'JetBrains Mono',monospace">{{ q.company }}</span>
+                <span style="flex:none;font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;color:{{ q.scoreColor }};width:46px;text-align:right">{{ q.lastLabel }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAME: BANK -->
+  <div style="flex:none;width:1180px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">03 · Question bank</div>
+    <div style="background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden">
+      <div style="height:42px;background:#F1EFEA;border-bottom:1px solid #E2DFD8;display:flex;align-items:center;padding:0 16px;gap:8px">
+        <div style="display:flex;gap:7px"><span style="width:11px;height:11px;border-radius:50%;background:#E0857E"></span><span style="width:11px;height:11px;border-radius:50%;background:#E6C07B"></span><span style="width:11px;height:11px;border-radius:50%;background:#A8C99A"></span></div>
+        <div style="flex:1;display:flex;justify-content:center"><div style="background:#fff;border:1px solid #E2DFD8;border-radius:7px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A867C;min-width:300px;text-align:center">recall.app/bank</div></div>
+      </div>
+      <div style="height:732px;display:flex;background:#F7F6F3">
+        <aside style="width:236px;flex:none;background:#FBFAF8;border-right:1px solid #E7E4DE;display:flex;flex-direction:column;padding:20px 14px">
+          <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 22px">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--accent,#3B57D6);display:flex;align-items:center;justify-content:center;flex:none"><div style="width:13px;height:13px;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:3px;height:3px;border-radius:50%;background:#fff"></div></div></div>
+            <span style="font-size:17px;font-weight:700;letter-spacing:-0.02em">Recall</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#56534B;font-size:14px;font-weight:500;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:2px;background:#C9C5BB"></span>Home</div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#56534B;font-size:14px;font-weight:500;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #B7B3A9"></span>Study</div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;background:var(--accent-tint,#ECEEFB);color:var(--accent-ink,#2C3FA8);font-size:14px;font-weight:600;margin-bottom:3px"><span style="width:9px;height:7px;border:1.5px solid var(--accent,#3B57D6);border-radius:2px"></span>Question bank</div>
+          <div style="margin-top:14px"><button style="width:100%;display:flex;align-items:center;gap:9px;padding:10px 12px;background:#fff;border:1px solid #E2DFD8;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;color:#1B1A17;cursor:pointer"><span style="font-size:17px;line-height:1;color:var(--accent,#3B57D6)">+</span>New note</button></div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-top:1px solid #EFEDE8">
+            <div style="width:30px;height:30px;border-radius:50%;background:#E4E1DA;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#56534B">J</div>
+            <div style="line-height:1.2"><div style="font-size:13px;font-weight:600">Jesús</div><div style="font-size:11px;color:#9B978C">S&amp;O · Product</div></div>
+          </div>
+        </aside>
+        <main style="flex:1;padding:30px 34px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <h2 style="font-size:23px;font-weight:700;letter-spacing:-0.025em;margin:0">Question bank</h2>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E2DFD8;border-radius:10px;padding:9px 13px;width:230px"><span style="width:13px;height:13px;border:1.5px solid #B7B3A9;border-radius:50%;flex:none"></span><span style="font-size:13px;color:#B7B3A9">Search questions…</span></div>
+              <button style="padding:10px 16px;background:var(--accent,#3B57D6);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">+ New note</button>
+            </div>
+          </div>
+          <div style="font-size:13px;color:#9B978C;margin-bottom:18px">47 questions · 3 due now</div>
+
+          <!-- filters -->
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:16px;flex-wrap:wrap">
+            <span style="font-size:12px;color:#9B978C;font-family:'JetBrains Mono',monospace;letter-spacing:0.05em">FILTER</span>
+            <span style="font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:999px;background:var(--accent,#3B57D6);color:#fff">All</span>
+            <span style="font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:999px;background:#EAF1FB;color:#2B5CA8">Behavioral</span>
+            <span style="font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:999px;background:#fff;border:1px solid #E2DFD8;color:#56534B">Case</span>
+            <span style="font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:999px;background:#fff;border:1px solid #E2DFD8;color:#56534B">Technical</span>
+            <span style="font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:999px;background:#fff;border:1px solid #E2DFD8;color:#56534B">Fit</span>
+            <span style="width:1px;height:18px;background:#E2DFD8;margin:0 4px"></span>
+            <span style="font-size:12.5px;padding:6px 13px;border-radius:999px;background:#fff;border:1px solid #E2DFD8;color:#56534B">All companies ▾</span>
+          </div>
+
+          <!-- table -->
+          <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);overflow:hidden">
+            <div style="display:flex;align-items:center;padding:11px 20px;background:#FBFAF8;border-bottom:1px solid #EFEDE8;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.06em;text-transform:uppercase">
+              <span style="flex:1">Question</span>
+              <span style="width:110px;flex:none">Category</span>
+              <span style="width:130px;flex:none">Company</span>
+              <span style="width:64px;flex:none;text-align:center">Reps</span>
+              <span style="width:60px;flex:none;text-align:center">Last</span>
+              <span style="width:120px;flex:none">Next review</span>
+              <span style="width:18px;flex:none"></span>
+            </div>
+            <sc-for list="{{ questions }}" as="q" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #F2F0EB;font-size:13.5px">
+                <span style="flex:1;padding-right:14px;color:#2D2B26;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ q.text }}</span>
+                <span style="width:110px;flex:none"><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:{{ q.catBg }};color:{{ q.catFg }}">{{ q.cat }}</span></span>
+                <span style="width:130px;flex:none;color:#56534B;font-family:'JetBrains Mono',monospace;font-size:12px">{{ q.company }}</span>
+                <span style="width:64px;flex:none;text-align:center;font-family:'JetBrains Mono',monospace;color:#8A867C">{{ q.reps }}</span>
+                <span style="width:60px;flex:none;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:600;color:{{ q.scoreColor }}">{{ q.lastLabel }}</span>
+                <span style="width:120px;flex:none"><span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:7px;background:{{ q.statusBg }};color:{{ q.statusFg }}">{{ q.next }}</span></span>
+                <span style="width:18px;flex:none;text-align:right;color:#C9C5BB">›</span>
+              </div>
+            </sc-for>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAME: DETAIL -->
+  <div style="flex:none;width:1180px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">04 · Question detail &amp; edit</div>
+    <div style="background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden">
+      <div style="height:42px;background:#F1EFEA;border-bottom:1px solid #E2DFD8;display:flex;align-items:center;padding:0 16px;gap:8px">
+        <div style="display:flex;gap:7px"><span style="width:11px;height:11px;border-radius:50%;background:#E0857E"></span><span style="width:11px;height:11px;border-radius:50%;background:#E6C07B"></span><span style="width:11px;height:11px;border-radius:50%;background:#A8C99A"></span></div>
+        <div style="flex:1;display:flex;justify-content:center"><div style="background:#fff;border:1px solid #E2DFD8;border-radius:7px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A867C;min-width:300px;text-align:center">recall.app/bank/Q-118</div></div>
+      </div>
+      <div style="height:732px;display:flex;background:#F7F6F3">
+        <aside style="width:236px;flex:none;background:#FBFAF8;border-right:1px solid #E7E4DE;display:flex;flex-direction:column;padding:20px 14px">
+          <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 22px">
+            <div style="width:28px;height:28px;border-radius:8px;background:var(--accent,#3B57D6);display:flex;align-items:center;justify-content:center;flex:none"><div style="width:13px;height:13px;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:3px;height:3px;border-radius:50%;background:#fff"></div></div></div>
+            <span style="font-size:17px;font-weight:700;letter-spacing:-0.02em">Recall</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#56534B;font-size:14px;font-weight:500;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:2px;background:#C9C5BB"></span>Home</div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#56534B;font-size:14px;font-weight:500;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #B7B3A9"></span>Study</div>
+          <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;background:var(--accent-tint,#ECEEFB);color:var(--accent-ink,#2C3FA8);font-size:14px;font-weight:600;margin-bottom:3px"><span style="width:9px;height:7px;border:1.5px solid var(--accent,#3B57D6);border-radius:2px"></span>Question bank</div>
+          <div style="margin-top:14px"><button style="width:100%;display:flex;align-items:center;gap:9px;padding:10px 12px;background:#fff;border:1px solid #E2DFD8;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;color:#1B1A17;cursor:pointer"><span style="font-size:17px;line-height:1;color:var(--accent,#3B57D6)">+</span>New note</button></div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-top:1px solid #EFEDE8">
+            <div style="width:30px;height:30px;border-radius:50%;background:#E4E1DA;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#56534B">J</div>
+            <div style="line-height:1.2"><div style="font-size:13px;font-weight:600">Jesús</div><div style="font-size:11px;color:#9B978C">S&amp;O · Product</div></div>
+          </div>
+        </aside>
+        <main style="flex:1;padding:26px 34px;overflow:hidden;display:flex;gap:26px">
+          <!-- editor -->
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+              <div style="font-size:12.5px;color:#9B978C;font-family:'JetBrains Mono',monospace">Question bank / <span style="color:#56534B">Q-118</span></div>
+              <div style="display:flex;gap:9px"><button style="padding:8px 15px;background:#fff;border:1px solid #E2DFD8;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:#56534B;cursor:pointer">Cancel</button><button style="padding:8px 16px;background:var(--accent,#3B57D6);border:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:#fff;cursor:pointer">Save changes</button></div>
+            </div>
+
+            <label style="display:block;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em;margin-bottom:8px">QUESTION</label>
+            <div style="background:#fff;border:1px solid #E2DFD8;border-radius:12px;padding:16px 18px;font-size:17px;font-weight:600;line-height:1.4;letter-spacing:-0.01em;margin-bottom:22px">Tell me about a time you influenced a team without authority.</div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><label style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em">REFERENCE ANSWER</label><span style="font-size:11px;color:#1F8A50;font-weight:600">● Saved (Mode A)</span></div>
+            <div style="background:#fff;border:1px solid #E2DFD8;border-radius:12px;padding:16px 18px;font-size:13.5px;line-height:1.6;color:#3D3A33;margin-bottom:22px">
+              <span style="color:var(--accent-ink,#2C3FA8);font-weight:600">Result first:</span> cut a cross-team decision cycle ~40%. <span style="color:#8A867C">Situation</span> — data &amp; ops disagreed on prioritization, no shared owner. <span style="color:#8A867C">Action</span> — built a shared scorecard, ran a lightweight weekly ritual, made trade-offs visible. <span style="color:#8A867C">Result</span> — both leads bought in, faster calls, fewer escalations.
+            </div>
+
+            <label style="display:block;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em;margin-bottom:10px">METADATA</label>
+            <div style="display:flex;flex-wrap:wrap;gap:18px">
+              <div><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Category</div><span style="font-size:13px;font-weight:600;padding:7px 13px;border-radius:9px;background:#EAF1FB;color:#2B5CA8">Behavioral ▾</span></div>
+              <div><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Company</div><span style="font-size:13px;font-weight:600;padding:7px 13px;border-radius:9px;background:#fff;border:1px solid #E2DFD8;color:#3D3A33">Revolut ▾</span></div>
+              <div><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Difficulty</div><span style="font-size:13px;font-weight:600;padding:7px 13px;border-radius:9px;background:#fff;border:1px solid #E2DFD8;color:#3D3A33">Medium ▾</span></div>
+              <div style="flex:1;min-width:160px"><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Tags</div><div style="display:flex;gap:6px"><span style="font-size:12px;padding:6px 11px;border-radius:999px;background:#F0EEE9;color:#56534B;font-family:'JetBrains Mono',monospace">leadership</span><span style="font-size:12px;padding:6px 11px;border-radius:999px;background:#F0EEE9;color:#56534B;font-family:'JetBrains Mono',monospace">+ add</span></div></div>
+            </div>
+          </div>
+
+          <!-- SR rail -->
+          <div style="width:300px;flex:none;display:flex;flex-direction:column;gap:16px">
+            <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);padding:20px">
+              <div style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em;margin-bottom:16px">SPACED REPETITION</div>
+              <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:4px"><span style="font-size:13px;color:#8A867C">Next review</span></div>
+              <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:18px">Today <span style="font-size:13px;font-weight:500;color:#9A6A12">· due now</span></div>
+              <div style="display:flex;gap:20px;margin-bottom:18px;font-family:'JetBrains Mono',monospace">
+                <div><div style="font-size:20px;font-weight:600">4</div><div style="font-size:11px;color:#9B978C">reps</div></div>
+                <div><div style="font-size:20px;font-weight:600">8d</div><div style="font-size:11px;color:#9B978C">interval</div></div>
+                <div><div style="font-size:20px;font-weight:600;color:#B5791F">6.0</div><div style="font-size:11px;color:#9B978C">avg</div></div>
+              </div>
+              <div style="font-size:11px;color:#9B978C;margin-bottom:9px">SCORE HISTORY</div>
+              <div style="display:flex;align-items:flex-end;gap:7px;height:48px;margin-bottom:6px">
+                <sc-for list="{{ spark }}" as="s" hint-placeholder-count="5">
+                  <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px"><div style="width:100%;height:{{ s.h }}px;background:{{ s.c }};border-radius:4px 4px 0 0"></div><span style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#B7B3A9">{{ s.v }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+            <button style="width:100%;padding:13px;background:#1B1A17;color:#fff;border:none;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Study this now →</button>
+            <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);padding:16px">
+              <div style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em;margin-bottom:12px">RECENT ATTEMPTS</div>
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0;border-bottom:1px solid #F2F0EB"><span style="color:#8A867C;font-family:'JetBrains Mono',monospace">Jun 19 · voice</span><span style="font-weight:600;color:#B5791F">7/10 · Good</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0;border-bottom:1px solid #F2F0EB"><span style="color:#8A867C;font-family:'JetBrains Mono',monospace">Jun 14 · text</span><span style="font-weight:600;color:#B5791F">6/10 · Hard</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0"><span style="color:#8A867C;font-family:'JetBrains Mono',monospace">Jun 09 · voice</span><span style="font-weight:600;color:#C0392B">5/10 · Again</span></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAME: PRACTICE ANSWER -->
+  <div style="flex:none;width:1180px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">05 · Practice — recording an answer</div>
+    <div style="background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden">
+      <div style="height:42px;background:#F1EFEA;border-bottom:1px solid #E2DFD8;display:flex;align-items:center;padding:0 16px;gap:8px">
+        <div style="display:flex;gap:7px"><span style="width:11px;height:11px;border-radius:50%;background:#E0857E"></span><span style="width:11px;height:11px;border-radius:50%;background:#E6C07B"></span><span style="width:11px;height:11px;border-radius:50%;background:#A8C99A"></span></div>
+        <div style="flex:1;display:flex;justify-content:center"><div style="background:#fff;border:1px solid #E2DFD8;border-radius:7px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A867C;min-width:300px;text-align:center">recall.app/practice</div></div>
+      </div>
+      <div style="height:732px;background:#F7F6F3;display:flex;flex-direction:column">
+        <!-- focus top bar -->
+        <div style="height:58px;flex:none;background:#fff;border-bottom:1px solid #E7E4DE;display:flex;align-items:center;justify-content:space-between;padding:0 26px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px;font-weight:700;color:#9B978C">✕</span><span style="font-size:14px;font-weight:600">Practice</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#9B978C">1 of 3 due</span><span style="width:46px;height:5px;background:#E7E4DE;border-radius:999px;overflow:hidden"><span style="display:block;width:33%;height:100%;background:var(--accent,#3B57D6)"></span></span></div>
+          <span style="font-size:13px;color:#9B978C">Stop anytime ↩</span>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:30px">
+          <div style="width:660px">
+            <div style="display:inline-flex;align-items:center;gap:7px;background:var(--accent-tint,#ECEEFB);color:var(--accent-ink,#2C3FA8);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;margin-bottom:18px"><span style="width:7px;height:7px;border-radius:50%;background:var(--accent,#3B57D6)"></span>Mode A · compare against your saved answer</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#EAF1FB;color:#2B5CA8">Behavioral</span><span style="font-size:12px;color:#9B978C;font-family:'JetBrains Mono',monospace">Revolut · Medium</span></div>
+            <h2 style="font-size:28px;font-weight:700;letter-spacing:-0.03em;line-height:1.25;margin:0 0 28px">Tell me about a time you influenced a team without authority.</h2>
+
+            <!-- input tabs -->
+            <div style="display:flex;gap:7px;margin-bottom:14px">
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:9px;background:#1B1A17;color:#fff;font-size:13px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:#E0857E"></span>Voice</span>
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:9px;background:#fff;border:1px solid #E2DFD8;color:#56534B;font-size:13px;font-weight:600">Type instead</span>
+            </div>
+
+            <!-- recording card -->
+            <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);padding:24px">
+              <div style="display:flex;align-items:center;gap:18px">
+                <button style="width:56px;height:56px;border-radius:50%;background:#FBECEA;border:1px solid #F1C9C3;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none"><span style="width:16px;height:16px;border-radius:4px;background:#C0392B"></span></button>
+                <div style="flex:1;display:flex;align-items:center;gap:2px;height:42px">
+                  <sc-for list="{{ wf }}" as="b" hint-placeholder-count="46">
+                    <span style="flex:1;height:{{ b.h }}px;background:{{ b.c }};border-radius:999px;min-width:2px"></span>
+                  </sc-for>
+                </div>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#1B1A17;flex:none">0:42</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid #F2F0EB;font-size:12.5px;color:#9B978C"><span style="width:7px;height:7px;border-radius:50%;background:#C0392B"></span>Recording — answer out loud as if in the room. We'll transcribe with Whisper before scoring.</div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
+              <button style="padding:11px 18px;background:#fff;border:1px solid #E2DFD8;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;color:#56534B;cursor:pointer">Skip question</button>
+              <button style="display:inline-flex;align-items:center;gap:9px;padding:13px 24px;background:var(--accent,#3B57D6);color:#fff;border:none;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Submit for feedback →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAME: PRACTICE FEEDBACK -->
+  <div style="flex:none;width:1180px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">06 · Practice — AI feedback &amp; self-rating</div>
+    <div style="background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden">
+      <div style="height:42px;background:#F1EFEA;border-bottom:1px solid #E2DFD8;display:flex;align-items:center;padding:0 16px;gap:8px">
+        <div style="display:flex;gap:7px"><span style="width:11px;height:11px;border-radius:50%;background:#E0857E"></span><span style="width:11px;height:11px;border-radius:50%;background:#E6C07B"></span><span style="width:11px;height:11px;border-radius:50%;background:#A8C99A"></span></div>
+        <div style="flex:1;display:flex;justify-content:center"><div style="background:#fff;border:1px solid #E2DFD8;border-radius:7px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A867C;min-width:300px;text-align:center">recall.app/practice</div></div>
+      </div>
+      <div style="height:732px;background:#F7F6F3;display:flex;flex-direction:column">
+        <div style="height:58px;flex:none;background:#fff;border-bottom:1px solid #E7E4DE;display:flex;align-items:center;justify-content:space-between;padding:0 26px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px;font-weight:700;color:#9B978C">✕</span><span style="font-size:14px;font-weight:600">Feedback</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#9B978C">1 of 3 due</span><span style="width:46px;height:5px;background:#E7E4DE;border-radius:999px;overflow:hidden"><span style="display:block;width:33%;height:100%;background:var(--accent,#3B57D6)"></span></span></div>
+          <span style="font-size:13px;color:#9B978C">Stop anytime ↩</span>
+        </div>
+        <div style="flex:1;display:flex;justify-content:center;padding:24px 30px;overflow:hidden">
+          <div style="width:920px;display:flex;gap:24px">
+            <!-- left: answers -->
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+              <div>
+                <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#EAF1FB;color:#2B5CA8">Behavioral</span>
+                <h3 style="font-size:18px;font-weight:700;letter-spacing:-0.02em;line-height:1.35;margin:11px 0 0">Tell me about a time you influenced a team without authority.</h3>
+              </div>
+              <div style="background:#fff;border:1px solid #E7E4DE;border-radius:12px;padding:16px 18px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px"><span style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em">YOUR ANSWER</span><span style="font-size:10px;color:#9B978C;font-family:'JetBrains Mono',monospace;background:#F0EEE9;padding:2px 7px;border-radius:6px">voice · transcribed</span></div>
+                <p style="font-size:13.5px;line-height:1.6;color:#3D3A33;margin:0">"So at my last role the data team and ops disagreed on what to build first. I wasn't either team's manager, so I set up a shared dashboard and a weekly 15-minute sync, and within a month or so both teams were aligned and we shipped the thing ops needed…"</p>
+              </div>
+              <div style="background:#fff;border:1px solid #E7E4DE;border-radius:12px;padding:16px 18px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px"><span style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em">YOUR SAVED REFERENCE</span><span style="font-size:10px;color:#2B5CA8;font-family:'JetBrains Mono',monospace;background:#EAF1FB;padding:2px 7px;border-radius:6px">Mode A</span></div>
+                <p style="font-size:13.5px;line-height:1.6;color:#3D3A33;margin:0"><span style="color:var(--accent-ink,#2C3FA8);font-weight:600">Result first:</span> cut a cross-team decision cycle ~40%. Built a shared scorecard, ran a lightweight ritual, made trade-offs visible — both leads bought in.</p>
+              </div>
+            </div>
+            <!-- right: score + self-rate -->
+            <div style="width:368px;flex:none;display:flex;flex-direction:column;gap:16px">
+              <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);padding:20px">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+                  <div style="width:66px;height:66px;border-radius:50%;border:4px solid #B5791F;display:flex;align-items:center;justify-content:center;flex:none"><span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#1B1A17">7<span style="font-size:12px;color:#9B978C">/10</span></span></div>
+                  <div><div style="font-size:11px;color:#9B978C;letter-spacing:0.05em;margin-bottom:3px">AI EVALUATION</div><div style="font-size:15px;font-weight:700">Solid, lead with impact</div></div>
+                </div>
+                <div style="margin-bottom:13px"><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#1F8A50;margin-bottom:5px"><span style="width:6px;height:6px;border-radius:50%;background:#1F8A50"></span>STRENGTHS</div><p style="font-size:13px;line-height:1.55;color:#3D3A33;margin:0">Concrete example with a clear outcome. You named the stakeholders and the tension well.</p></div>
+                <div><div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#B5791F;margin-bottom:5px"><span style="width:6px;height:6px;border-radius:50%;background:#B5791F"></span>TO IMPROVE</div><p style="font-size:13px;line-height:1.55;color:#3D3A33;margin:0">Open with the result, then the situation — your impact landed late. Quantify the win (≈40%).</p></div>
+              </div>
+              <div style="background:#fff;border:1px solid #E7E4DE;border-radius:var(--radius,14px);padding:18px">
+                <div style="font-size:14px;font-weight:700;margin-bottom:3px">How did it actually go?</div>
+                <div style="font-size:12px;color:#9B978C;line-height:1.45;margin-bottom:14px">Your call — not the AI score — sets the next review.</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+                  <sc-for list="{{ selfRate }}" as="r" hint-placeholder-count="4">
+                    <button style="text-align:left;padding:11px 13px;border-radius:11px;background:{{ r.bg }};border:1px solid {{ r.border }};cursor:pointer;font-family:inherit"><div style="font-size:14px;font-weight:700;color:{{ r.fg }}">{{ r.label }}</div><div style="font-size:11px;color:{{ r.fg }};opacity:0.75;font-family:'JetBrains Mono',monospace">{{ r.sub }}</div></button>
+                  </sc-for>
+                </div>
+              </div>
+              <button style="width:100%;padding:13px;background:var(--accent,#3B57D6);color:#fff;border:none;border-radius:11px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Next due question →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAME: CAPTURE -->
+  <div style="flex:none;width:1180px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">07 · Capture a new question</div>
+    <div style="background:#fff;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden">
+      <div style="height:42px;background:#F1EFEA;border-bottom:1px solid #E2DFD8;display:flex;align-items:center;padding:0 16px;gap:8px">
+        <div style="display:flex;gap:7px"><span style="width:11px;height:11px;border-radius:50%;background:#E0857E"></span><span style="width:11px;height:11px;border-radius:50%;background:#E6C07B"></span><span style="width:11px;height:11px;border-radius:50%;background:#A8C99A"></span></div>
+        <div style="flex:1;display:flex;justify-content:center"><div style="background:#fff;border:1px solid #E2DFD8;border-radius:7px;padding:5px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A867C;min-width:300px;text-align:center">recall.app/bank</div></div>
+      </div>
+      <!-- dimmed shell + modal -->
+      <div style="height:732px;background:#F7F6F3;position:relative;display:flex;align-items:center;justify-content:center">
+        <div style="position:absolute;inset:0;background:rgba(27,26,23,0.34)"></div>
+        <div style="position:relative;width:560px;background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,0.28);padding:26px 28px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h3 style="font-size:18px;font-weight:700;letter-spacing:-0.02em;margin:0">New note</h3><span style="font-size:16px;color:#9B978C">✕</span></div>
+
+          <label style="display:block;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em;margin-bottom:8px">QUESTION *</label>
+          <div style="background:#FBFAF8;border:1px solid #E2DFD8;border-radius:11px;padding:14px;font-size:15px;font-weight:500;line-height:1.45;color:#1B1A17;min-height:70px">How would you cut delivery times for Mercado Envíos in Lima?<span style="display:inline-block;width:2px;height:18px;background:var(--accent,#3B57D6);vertical-align:-3px;margin-left:1px"></span></div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px"><label style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em">REFERENCE ANSWER</label><span style="font-size:11px;color:#9B978C">optional</span></div>
+          <div style="background:#FBFAF8;border:1px dashed #D6D2C9;border-radius:11px;padding:14px;font-size:13px;color:#9B978C;line-height:1.5">Leave empty — the AI drafts a model answer the first time you practice, and you can save it as your reference <span style="color:var(--accent-ink,#2C3FA8);font-weight:600">(Mode B)</span>.</div>
+
+          <label style="display:block;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.05em;margin:18px 0 10px">DETAILS <span style="font-weight:400;text-transform:none;letter-spacing:0">— optional, keeps capture friction low</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <div><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Category</div><div style="display:flex;gap:6px"><span style="font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:8px;background:#F2ECFB;color:#6A3FB0">Case</span><span style="font-size:12.5px;padding:6px 11px;border-radius:8px;background:#F4F2ED;color:#9B978C">Behavioral</span><span style="font-size:12.5px;padding:6px 11px;border-radius:8px;background:#F4F2ED;color:#9B978C">Fit</span></div></div>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:14px">
+            <div style="flex:1"><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Company</div><div style="border:1px solid #E2DFD8;border-radius:9px;padding:9px 12px;font-size:13px;color:#3D3A33;display:flex;justify-content:space-between">Mercado Libre <span style="color:#B7B3A9">▾</span></div></div>
+            <div style="flex:1"><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Difficulty</div><div style="border:1px solid #E2DFD8;border-radius:9px;padding:9px 12px;font-size:13px;color:#3D3A33;display:flex;justify-content:space-between">Hard <span style="color:#B7B3A9">▾</span></div></div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid #EFEDE8">
+            <button style="padding:11px 16px;background:#fff;border:1px solid #E2DFD8;border-radius:10px;font-family:inherit;font-size:13.5px;font-weight:600;color:#56534B;cursor:pointer">Save &amp; add another</button>
+            <button style="padding:11px 20px;background:var(--accent,#3B57D6);border:none;border-radius:10px;font-family:inherit;font-size:13.5px;font-weight:600;color:#fff;cursor:pointer">Save note</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== MOBILE SECTION ===== -->
+<div style="display:flex;align-items:center;gap:12px;margin:56px 0 24px">
+  <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.14em;color:#56534B;text-transform:uppercase">Mobile app</span>
+  <span style="flex:none;width:7px;height:7px;border-radius:50%;background:#C9C5BB"></span>
+  <span style="font-size:13px;color:#8A867C">Native iOS / Android · same bank, synced · 390px</span>
+</div>
+
+<div style="display:flex;gap:40px;align-items:flex-start">
+
+  <!-- MOBILE HOME -->
+  <div style="flex:none;width:390px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">Home</div>
+    <div style="width:390px;height:800px;background:#000;border-radius:44px;padding:11px;box-shadow:0 8px 30px rgba(0,0,0,.18)">
+      <div style="width:100%;height:100%;background:#F7F6F3;border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+        <!-- status bar -->
+        <div style="height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px"><span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace">9:41</span><div style="display:flex;gap:5px;align-items:center"><span style="width:17px;height:10px;border:1.5px solid #1B1A17;border-radius:3px"></span><span style="width:15px;height:11px;border-radius:2px;background:#1B1A17"></span></div></div>
+        <!-- notch -->
+        <div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 18px 18px"></div>
+        <div style="flex:1;overflow:hidden;padding:8px 20px 0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+            <div><div style="font-size:12px;color:#9B978C;font-family:'JetBrains Mono',monospace">MON · JUN 23</div><div style="font-size:21px;font-weight:700;letter-spacing:-0.02em">Morning, Jesús</div></div>
+            <div style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #E7E4DE;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600;color:#56534B"><span style="width:7px;height:7px;border-radius:50%;background:#E0A23B"></span>12</div>
+          </div>
+          <!-- due hero -->
+          <div style="background:#1B1A17;border-radius:18px;padding:22px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden">
+            <div style="font-size:12px;color:#A8A49B;letter-spacing:0.03em;margin-bottom:6px">DUE TODAY</div>
+            <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:18px"><span style="font-size:48px;font-weight:700;letter-spacing:-0.04em;line-height:0.9">3</span><span style="font-size:13px;color:#A8A49B;padding-bottom:6px">ready to<br>practice</span></div>
+            <button style="width:100%;padding:13px;background:var(--accent,#3B57D6);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Study →</button>
+            <div style="position:absolute;right:-50px;bottom:-70px;width:170px;height:170px;border-radius:50%;border:1px solid rgba(255,255,255,0.08)"></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:11px">Up next</div>
+          <sc-for list="{{ due }}" as="q" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #E7E4DE;border-radius:13px;padding:13px 15px;margin-bottom:9px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:{{ q.catBg }};color:{{ q.catFg }}">{{ q.cat }}</span><span style="font-size:11px;color:#9B978C;font-family:'JetBrains Mono',monospace;margin-left:auto">{{ q.company }}</span></div>
+              <div style="font-size:13.5px;font-weight:500;color:#2D2B26;line-height:1.35">{{ q.text }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <!-- tab bar -->
+        <div style="height:74px;flex:none;background:#fff;border-top:1px solid #E7E4DE;display:flex;align-items:flex-start;justify-content:space-around;padding:11px 14px 0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:16px;height:16px;border-radius:4px;background:var(--accent,#3B57D6)"></span><span style="font-size:10px;font-weight:600;color:var(--accent,#3B57D6)">Home</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:15px;height:12px;border:1.6px solid #B7B3A9;border-radius:3px"></span><span style="font-size:10px;color:#9B978C">Bank</span></div>
+          <div style="margin-top:-14px"><button style="width:50px;height:50px;border-radius:50%;background:var(--accent,#3B57D6);border:none;color:#fff;font-size:26px;font-weight:300;line-height:1;cursor:pointer;box-shadow:0 6px 16px rgba(59,87,214,0.4)">+</button></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:0;height:0;border-left:9px solid #B7B3A9;border-top:6px solid transparent;border-bottom:6px solid transparent"></span><span style="font-size:10px;color:#9B978C">Study</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:50%;background:#D8D4CC"></span><span style="font-size:10px;color:#9B978C">You</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE PRACTICE FEEDBACK (MODE B) -->
+  <div style="flex:none;width:390px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">Practice · feedback (Mode B)</div>
+    <div style="width:390px;height:800px;background:#000;border-radius:44px;padding:11px;box-shadow:0 8px 30px rgba(0,0,0,.18)">
+      <div style="width:100%;height:100%;background:#F7F6F3;border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+        <div style="height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px"><span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace">9:41</span><div style="display:flex;gap:5px;align-items:center"><span style="width:17px;height:10px;border:1.5px solid #1B1A17;border-radius:3px"></span><span style="width:15px;height:11px;border-radius:2px;background:#1B1A17"></span></div></div>
+        <div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 18px 18px"></div>
+        <!-- header -->
+        <div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 20px 12px"><span style="font-size:15px;color:#9B978C">✕</span><span style="font-size:14px;font-weight:700">Feedback</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#9B978C">1/3</span></div>
+        <div style="flex:1;overflow:hidden;padding:0 18px">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:#F2ECFB;color:#6A3FB0;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;margin-bottom:11px"><span style="width:6px;height:6px;border-radius:50%;background:#6A3FB0"></span>Mode B · AI drafted a model answer</div>
+          <h3 style="font-size:16px;font-weight:700;letter-spacing:-0.01em;line-height:1.35;margin:0 0 14px">How do you prioritize when ops, growth and support all want eng time?</h3>
+          <!-- score -->
+          <div style="background:#fff;border:1px solid #E7E4DE;border-radius:14px;padding:15px;display:flex;align-items:center;gap:14px;margin-bottom:12px">
+            <div style="width:54px;height:54px;border-radius:50%;border:3.5px solid #B5791F;display:flex;align-items:center;justify-content:center;flex:none"><span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600">6<span style="font-size:10px;color:#9B978C">/10</span></span></div>
+            <p style="font-size:12.5px;line-height:1.5;color:#3D3A33;margin:0">Good instinct to use one framework. Make the trade-off <b>visible to all three leads</b> and tie each ask to a metric.</p>
+          </div>
+          <!-- AI model answer -->
+          <div style="background:#fff;border:1px solid #E7E4DE;border-radius:14px;padding:15px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:11px;font-weight:600;color:#6A3FB0;letter-spacing:0.04em">MODEL ANSWER · AI</span><button style="font-size:11px;font-weight:600;color:var(--accent-ink,#2C3FA8);background:var(--accent-tint,#ECEEFB);border:none;border-radius:7px;padding:5px 10px;cursor:pointer">Save as reference</button></div>
+            <p style="font-size:12.5px;line-height:1.6;color:#3D3A33;margin:0">Frame it as one scarce resource against three demands. 1) Tie each ask to a metric that matters this quarter. 2) Score by impact × effort × reversibility. 3) Make the trade-off visible in one shared view. 4) Set a cadence so "no" means "not now."</p>
+          </div>
+          <!-- self rate -->
+          <div style="font-size:13px;font-weight:700;margin-bottom:3px">How did it actually go?</div>
+          <div style="font-size:11px;color:#9B978C;margin-bottom:10px">Your call sets the next review — not the score.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <sc-for list="{{ selfRate }}" as="r" hint-placeholder-count="4">
+              <button style="text-align:left;padding:10px 12px;border-radius:11px;background:{{ r.bg }};border:1px solid {{ r.border }};cursor:pointer;font-family:inherit"><div style="font-size:13px;font-weight:700;color:{{ r.fg }}">{{ r.label }}</div><div style="font-size:10.5px;color:{{ r.fg }};opacity:0.75;font-family:'JetBrains Mono',monospace">{{ r.sub }}</div></button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="height:24px;flex:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE BANK -->
+  <div style="flex:none;width:390px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">Question bank</div>
+    <div style="width:390px;height:800px;background:#000;border-radius:44px;padding:11px;box-shadow:0 8px 30px rgba(0,0,0,.18)">
+      <div style="width:100%;height:100%;background:#F7F6F3;border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+        <div style="height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px"><span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace">9:41</span><div style="display:flex;gap:5px;align-items:center"><span style="width:17px;height:10px;border:1.5px solid #1B1A17;border-radius:3px"></span><span style="width:15px;height:11px;border-radius:2px;background:#1B1A17"></span></div></div>
+        <div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 18px 18px"></div>
+        <div style="flex:none;padding:8px 20px 0">
+          <div style="font-size:21px;font-weight:700;letter-spacing:-0.02em;margin-bottom:3px">Question bank</div>
+          <div style="font-size:12px;color:#9B978C;margin-bottom:13px">47 questions · 3 due now</div>
+          <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E2DFD8;border-radius:11px;padding:10px 13px;margin-bottom:12px"><span style="width:13px;height:13px;border:1.5px solid #B7B3A9;border-radius:50%;flex:none"></span><span style="font-size:13px;color:#B7B3A9">Search…</span></div>
+          <div style="display:flex;gap:7px;margin-bottom:4px;overflow:hidden">
+            <span style="flex:none;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;background:var(--accent,#3B57D6);color:#fff">All</span>
+            <span style="flex:none;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;background:#EAF1FB;color:#2B5CA8">Behavioral</span>
+            <span style="flex:none;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;background:#fff;border:1px solid #E2DFD8;color:#56534B">Case</span>
+            <span style="flex:none;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;background:#fff;border:1px solid #E2DFD8;color:#56534B">Tech</span>
+          </div>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:13px 20px 0">
+          <sc-for list="{{ questions }}" as="q" hint-placeholder-count="7">
+            <div style="background:#fff;border:1px solid #E7E4DE;border-radius:13px;padding:13px 15px;margin-bottom:9px">
+              <div style="font-size:13.5px;font-weight:500;color:#2D2B26;line-height:1.35;margin-bottom:9px">{{ q.text }}</div>
+              <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:{{ q.catBg }};color:{{ q.catFg }}">{{ q.cat }}</span><span style="font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:6px;background:{{ q.statusBg }};color:{{ q.statusFg }}">{{ q.next }}</span><span style="margin-left:auto;font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;color:{{ q.scoreColor }}">{{ q.lastLabel }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="height:74px;flex:none;background:#fff;border-top:1px solid #E7E4DE;display:flex;align-items:flex-start;justify-content:space-around;padding:11px 14px 0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:16px;height:16px;border-radius:4px;background:#D8D4CC"></span><span style="font-size:10px;color:#9B978C">Home</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:15px;height:12px;border:1.6px solid var(--accent,#3B57D6);border-radius:3px"></span><span style="font-size:10px;font-weight:600;color:var(--accent,#3B57D6)">Bank</span></div>
+          <div style="margin-top:-14px"><button style="width:50px;height:50px;border-radius:50%;background:var(--accent,#3B57D6);border:none;color:#fff;font-size:26px;font-weight:300;line-height:1;cursor:pointer;box-shadow:0 6px 16px rgba(59,87,214,0.4)">+</button></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:0;height:0;border-left:9px solid #B7B3A9;border-top:6px solid transparent;border-bottom:6px solid transparent"></span><span style="font-size:10px;color:#9B978C">Study</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:50%;background:#D8D4CC"></span><span style="font-size:10px;color:#9B978C">You</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE DETAIL -->
+  <div style="flex:none;width:390px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">Question detail</div>
+    <div style="width:390px;height:800px;background:#000;border-radius:44px;padding:11px;box-shadow:0 8px 30px rgba(0,0,0,.18)">
+      <div style="width:100%;height:100%;background:#F7F6F3;border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+        <div style="height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px"><span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace">9:41</span><div style="display:flex;gap:5px;align-items:center"><span style="width:17px;height:10px;border:1.5px solid #1B1A17;border-radius:3px"></span><span style="width:15px;height:11px;border-radius:2px;background:#1B1A17"></span></div></div>
+        <div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 18px 18px"></div>
+        <div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 20px 12px"><span style="font-size:14px;color:var(--accent-ink,#2C3FA8);font-weight:600">‹ Bank</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#9B978C">Q-118</span><span style="font-size:13px;color:var(--accent-ink,#2C3FA8);font-weight:600">Edit</span></div>
+        <div style="flex:1;overflow:hidden;padding:0 18px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px"><span style="font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:#EAF1FB;color:#2B5CA8">Behavioral</span><span style="font-size:11px;color:#9B978C;font-family:'JetBrains Mono',monospace">Revolut · Medium</span></div>
+          <h3 style="font-size:18px;font-weight:700;letter-spacing:-0.02em;line-height:1.3;margin:0 0 16px">Tell me about a time you influenced a team without authority.</h3>
+          <div style="background:#fff;border:1px solid #E7E4DE;border-radius:13px;padding:14px;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.04em;margin-bottom:8px">REFERENCE ANSWER · MODE A</div>
+            <p style="font-size:13px;line-height:1.6;color:#3D3A33;margin:0"><span style="color:var(--accent-ink,#2C3FA8);font-weight:600">Result first:</span> cut a cross-team decision cycle ~40%. Built a shared scorecard, ran a lightweight ritual, made trade-offs visible.</p>
+          </div>
+          <div style="background:#fff;border:1px solid #E7E4DE;border-radius:13px;padding:14px;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.04em;margin-bottom:12px">SPACED REPETITION</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px"><span style="font-size:13px;color:#56534B">Next review</span><span style="font-size:14px;font-weight:700;color:#9A6A12">Today · due</span></div>
+            <div style="display:flex;gap:18px;font-family:'JetBrains Mono',monospace"><div><div style="font-size:18px;font-weight:600">4</div><div style="font-size:10px;color:#9B978C">reps</div></div><div><div style="font-size:18px;font-weight:600">8d</div><div style="font-size:10px;color:#9B978C">interval</div></div><div style="flex:1"><div style="font-size:10px;color:#9B978C;margin-bottom:5px">history</div><div style="display:flex;align-items:flex-end;gap:4px;height:26px"><sc-for list="{{ spark }}" as="s" hint-placeholder-count="5"><div style="flex:1;height:{{ s.h }}px;background:{{ s.c }};border-radius:2px"></div></sc-for></div></div></div>
+          </div>
+          <button style="width:100%;padding:14px;background:#1B1A17;color:#fff;border:none;border-radius:13px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Practice this now →</button>
+        </div>
+        <div style="height:24px;flex:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE CAPTURE -->
+  <div style="flex:none;width:390px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#8A867C;margin-bottom:12px;text-transform:uppercase">Capture · quick add</div>
+    <div style="width:390px;height:800px;background:#000;border-radius:44px;padding:11px;box-shadow:0 8px 30px rgba(0,0,0,.18)">
+      <div style="width:100%;height:100%;background:#F7F6F3;border-radius:34px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+        <div style="height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px"><span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace">9:41</span><div style="display:flex;gap:5px;align-items:center"><span style="width:17px;height:10px;border:1.5px solid #1B1A17;border-radius:3px"></span><span style="width:15px;height:11px;border-radius:2px;background:#1B1A17"></span></div></div>
+        <div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 18px 18px"></div>
+        <div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 20px 14px"><span style="font-size:15px;color:#9B978C">✕</span><span style="font-size:15px;font-weight:700">New note</span><span style="font-size:13px;color:#C9C5BB;font-weight:600">Save</span></div>
+        <div style="flex:1;overflow:hidden;padding:0 18px">
+          <label style="display:block;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.04em;margin-bottom:8px">QUESTION *</label>
+          <div style="background:#fff;border:1px solid #E2DFD8;border-radius:13px;padding:14px;font-size:15px;font-weight:500;line-height:1.45;min-height:88px;margin-bottom:16px">Why Revolut, and why this role specifically?<span style="display:inline-block;width:2px;height:18px;background:var(--accent,#3B57D6);vertical-align:-3px;margin-left:1px"></span></div>
+          <label style="display:block;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.04em;margin-bottom:8px">REFERENCE ANSWER · OPTIONAL</label>
+          <div style="background:#fff;border:1px dashed #D6D2C9;border-radius:13px;padding:14px;font-size:12.5px;color:#9B978C;line-height:1.5;margin-bottom:16px">Leave empty — AI drafts a model answer when you practice <span style="color:var(--accent-ink,#2C3FA8);font-weight:600">(Mode B)</span>.</div>
+          <label style="display:block;font-size:11px;font-weight:600;color:#9B978C;letter-spacing:0.04em;margin-bottom:9px">CATEGORY</label>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px"><span style="font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:9px;background:#FBEEE7;color:#B05A2E">Fit</span><span style="font-size:12.5px;padding:7px 13px;border-radius:9px;background:#fff;border:1px solid #E2DFD8;color:#9B978C">Behavioral</span><span style="font-size:12.5px;padding:7px 13px;border-radius:9px;background:#fff;border:1px solid #E2DFD8;color:#9B978C">Case</span></div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1"><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Company</div><div style="border:1px solid #E2DFD8;border-radius:10px;padding:10px 12px;font-size:13px;background:#fff;display:flex;justify-content:space-between">Revolut <span style="color:#B7B3A9">▾</span></div></div>
+            <div style="flex:1"><div style="font-size:11px;color:#9B978C;margin-bottom:6px">Difficulty</div><div style="border:1px solid #E2DFD8;border-radius:10px;padding:10px 12px;font-size:13px;background:#fff;display:flex;justify-content:space-between">Easy <span style="color:#B7B3A9">▾</span></div></div>
+          </div>
+        </div>
+        <div style="flex:none;padding:14px 18px;border-top:1px solid #EFEDE8;background:#fff"><button style="width:100%;padding:14px;background:var(--accent,#3B57D6);color:#fff;border:none;border-radius:13px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Save note</button></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Indigo&quot;,&quot;Blue&quot;,&quot;Green&quot;,&quot;Violet&quot;,&quot;Ink&quot;],&quot;default&quot;:&quot;Indigo&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;roundness&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Soft&quot;,&quot;Medium&quot;,&quot;Sharp&quot;],&quot;default&quot;:&quot;Medium&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  cat(c){
+    const m={Behavioral:{bg:'#EAF1FB',fg:'#2B5CA8'},Case:{bg:'#F2ECFB',fg:'#6A3FB0'},Technical:{bg:'#E7F3EC',fg:'#1F7A4D'},Fit:{bg:'#FBEEE7',fg:'#B05A2E'}};
+    return m[c]||{bg:'#EEF0F2',fg:'#6A675F'};
+  }
+  stat(s){
+    const m={due:{label:'Due now',bg:'#FBF1E0',fg:'#9A6A12'},learning:{label:'Learning',bg:'#ECEEFB',fg:'#3B57D6'},scheduled:{label:'Scheduled',bg:'#EFF0F2',fg:'#6A675F'},'new':{label:'New',bg:'#E7F3EC',fg:'#1F7A4D'}};
+    return m[s]||m.scheduled;
+  }
+  scoreColor(n){ if(n==null) return '#9B978C'; if(n>=8) return '#1F8A50'; if(n>=5) return '#B5791F'; return '#C0392B'; }
+  renderVals(){
+    const raw=[
+      {id:'Q-118',text:'Tell me about a time you influenced a team without authority.',cat:'Behavioral',company:'Revolut',diff:'Medium',status:'due',next:'Due now',last:6,reps:4},
+      {id:'Q-117',text:'How would you cut delivery times for Mercado Envíos in Lima?',cat:'Case',company:'Mercado Libre',diff:'Hard',status:'due',next:'Due now',last:5,reps:3},
+      {id:'Q-116',text:'Why Revolut, and why this role specifically?',cat:'Fit',company:'Revolut',diff:'Easy',status:'due',next:'Due now',last:8,reps:6},
+      {id:'Q-115',text:'Estimate the daily ride requests inDrive handles in Lima.',cat:'Case',company:'inDrive',diff:'Hard',status:'learning',next:'in 2 days',last:4,reps:2},
+      {id:'Q-114',text:'Write SQL for the top 3 couriers by on-time rate per zone.',cat:'Technical',company:'Mercado Libre',diff:'Medium',status:'scheduled',next:'in 6 days',last:7,reps:5},
+      {id:'Q-113',text:'Describe a project that failed and what you learned.',cat:'Behavioral',company:'Rappi',diff:'Medium',status:'scheduled',next:'in 11 days',last:8,reps:7},
+      {id:'Q-112',text:'How do you prioritize when ops, growth and support all want eng time?',cat:'Behavioral',company:'inDrive',diff:'Hard',status:'new',next:'New',last:null,reps:0},
+      {id:'Q-111',text:'Size the TAM for inDrive entering a new mid-size city.',cat:'Case',company:'inDrive',diff:'Hard',status:'new',next:'New',last:null,reps:0}
+    ];
+    const questions=raw.map(q=>{
+      const c=this.cat(q.cat), s=this.stat(q.status);
+      return Object.assign({},q,{catBg:c.bg,catFg:c.fg,statusBg:s.bg,statusFg:s.fg,scoreColor:this.scoreColor(q.last),lastLabel:q.last==null?'—':(q.last+'/10')});
+    });
+    const due=questions.filter(q=>q.status==='due');
+    const cats=[{name:'Behavioral',count:18},{name:'Case',count:14},{name:'Technical',count:9},{name:'Fit',count:6}];
+    const maxC=Math.max.apply(null,cats.map(x=>x.count));
+    const categories=cats.map(x=>Object.assign({},x,this.cat(x.name),{pct:Math.round(x.count/maxC*100)}));
+    const selfRate=[
+      {key:'again',label:'Again',sub:'< 10 min',bg:'#FBECEA',fg:'#C0392B',border:'#F1C9C3'},
+      {key:'hard',label:'Hard',sub:'2 days',bg:'#FBF2E2',fg:'#9A6A12',border:'#EAD8AE'},
+      {key:'good',label:'Good',sub:'4 days',bg:'#E9F1FB',fg:'#2D6BB5',border:'#C7DBF3'},
+      {key:'easy',label:'Easy',sub:'9 days',bg:'#E7F3EC',fg:'#1F7A4D',border:'#C2E2CE'}
+    ];
+    const wf=Array.from({length:46},(_,i)=>{
+      const h=Math.round(8+15*Math.abs(Math.sin(i*0.7))+ (i%4)*3);
+      return {h:Math.min(h,40), c: i<30 ? '#1B1A17' : '#D8D4CC'};
+    });
+    const sparkVals=[5,6,7,6,7];
+    const spark=sparkVals.map(v=>({v:v, h:10+v*4.5, c:this.scoreColor(v)}));
+
+    const accents={
+      Indigo:{a:'#3B57D6',t:'#ECEEFB',k:'#2C3FA8'},
+      Blue:{a:'#2A6FDB',t:'#E7F0FB',k:'#1F5BB5'},
+      Green:{a:'#1F8A5B',t:'#E4F2EB',k:'#176C47'},
+      Violet:{a:'#6A4FD8',t:'#EEEAFB',k:'#4F38A8'},
+      Ink:{a:'#26241F',t:'#ECEAE5',k:'#000000'}
+    };
+    const ac=accents[this.props.accent]||accents.Indigo;
+    const radius={Soft:'18px',Medium:'12px',Sharp:'6px'}[this.props.roundness]||'14px';
+    const themeVars=`--accent:${ac.a};--accent-tint:${ac.t};--accent-ink:${ac.k};--radius:${radius}`;
+
+    return {questions,due,categories,selfRate,wf,spark,themeVars};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Claude Code local settings
+.claude/
+
+# backup of old embedded git repo
+mobile/.git.bak/
