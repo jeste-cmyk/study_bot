@@ -21,7 +21,7 @@ describe('toPracticeItems', () => {
     expect(toPracticeItems(notes)).toHaveLength(1);
   });
 
-  it('expands a story into one item per trigger sharing the combined reference', () => {
+  it('expands a story into one item per trigger sharing the storytelling reference', () => {
     const story = makeStory({ triggers: [makeTrigger(), makeTrigger()] });
     const items = toPracticeItems([story]);
     expect(items).toHaveLength(2);
@@ -31,9 +31,7 @@ describe('toPracticeItems', () => {
       expect(item.triggerId).toBe(story.triggers[i].id);
       expect(item.kind).toBe('story');
       expect(item.prompt).toBe(story.triggers[i].text);
-      expect(item.reference).toContain(`Hook: ${story.hook}`);
-      expect(item.reference).toContain(story.narrative);
-      expect(item.reference).toContain(`Takeaway: ${story.takeaway}`);
+      expect(item.reference).toBe(story.storytelling);
       expect(item.company).toBeNull();
     }
   });

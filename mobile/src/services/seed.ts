@@ -204,17 +204,20 @@ function seedStory(userId: string, now: Date): Story {
     userId,
     kind: 'story',
     status: 'ready',
-    hook: 'The conference where my luggage — and the demo laptop — vanished an hour before I went on stage.',
-    narrative:
-      '• Airline lost the bag with the demo hardware en route to Bogotá.\n• Borrowed a colleague’s laptop, rebuilt the demo env from a cloud backup in 40 min.\n• Re-sequenced the talk to lead with the live numbers instead of the device.',
-    takeaway:
-      'Preparation is a system, not a suitcase — keep the critical path reproducible from anywhere.',
+    mode: 'interview',
+    title: 'The vanished demo laptop',
+    rawStory:
+      'Flying to a conference in Bogotá, the airline lost the bag with my demo hardware an hour before I went on stage. I borrowed a colleague’s laptop and rebuilt the demo environment from a cloud backup in about 40 minutes. Then I re-sequenced the talk to lead with the live numbers instead of the device.',
+    storytelling:
+      'An hour before my conference talk in Bogotá, the airline lost the bag with my demo laptop. Rather than panic, I borrowed a colleague’s machine and rebuilt the entire demo environment from a cloud backup in 40 minutes. I re-sequenced the talk on the fly to open with the live numbers instead of the hardware — and the audience never knew anything had gone wrong. It taught me that preparation is a system, not a suitcase: keep the critical path reproducible from anywhere.',
+    score: 8,
     triggers: triggerTexts.map((t) => ({
       id: uid('tr-'),
       text: t,
       sr: initialSR(now),
       attempts: [],
     })),
+    conversationHooks: [],
     category: 'Behavioral',
     difficulty: 'Medium',
     tags: ['story', 'resilience'],
@@ -223,6 +226,48 @@ function seedStory(userId: string, now: Date): Story {
   };
 }
 
+function seedPersonalStory(userId: string, now: Date): Story {
+  const createdAt = new Date(now.getTime() - 8 * DAY).toISOString();
+  const triggerTexts = [
+    'When talk turns to travel disasters',
+    'When someone mentions getting lost somewhere',
+  ];
+  return {
+    id: uid('s-'),
+    userId,
+    kind: 'story',
+    status: 'ready',
+    mode: 'personal',
+    title: 'The overnight bus to nowhere',
+    rawStory:
+      'On a trip through Peru I fell asleep on an overnight bus and woke up at the last stop, three hours past my town, in a place I had never heard of. The driver just laughed. I ended up sharing breakfast with a family who ran the little bus-stop café and they drove me back.',
+    storytelling:
+      'So I’m on this overnight bus in Peru, completely knocked out, and I wake up to the driver tapping my shoulder — last stop, everyone off. Except this isn’t my town. I’m three hours past it, in a place I’ve genuinely never heard of, and it’s 5am. The driver just laughs at me and drives off. But the family running the little café at the bus stop takes one look at me, feeds me the best breakfast of the whole trip, and then the dad just… drives me back. Turns out getting hopelessly lost was the best thing that happened on that trip.',
+    score: 8,
+    triggers: triggerTexts.map((t) => ({
+      id: uid('tr-'),
+      text: t,
+      sr: initialSR(now),
+      attempts: [],
+    })),
+    conversationHooks: [
+      'Ask them: what’s the most lost you’ve ever been somewhere?',
+      'Share your take on how the best travel moments are never the planned ones.',
+      'Branch to a related story — a time a stranger unexpectedly helped you out.',
+      'Pivot to an unrelated thread — where they’d travel next if they could.',
+    ],
+    category: null,
+    difficulty: 'Easy',
+    tags: ['story', 'travel'],
+    createdAt,
+    updatedAt: createdAt,
+  };
+}
+
 export function seedNotes(userId: string, now = new Date()): Note[] {
-  return [seedStory(userId, now), ...seedQuestions(userId, now)];
+  return [
+    seedStory(userId, now),
+    seedPersonalStory(userId, now),
+    ...seedQuestions(userId, now),
+  ];
 }

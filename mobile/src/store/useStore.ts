@@ -19,6 +19,7 @@ import type {
   Question,
   Rating,
   Story,
+  StoryMode,
   StoryTrigger,
 } from '@/domain/types';
 import { isStory } from '@/domain/types';
@@ -38,10 +39,13 @@ export interface NewQuestionInput {
 export interface NewStoryInput {
   kind: 'story';
   status?: NoteStatus;
-  hook: string;
-  narrative: string;
-  takeaway: string;
-  triggers: string[]; // one prompt per trigger
+  mode?: StoryMode;
+  title?: string;
+  rawStory: string;
+  storytelling?: string;
+  score?: number | null;
+  triggers?: string[]; // AI-generated prompts, one per trigger
+  conversationHooks?: string[];
   category?: Category | null;
   difficulty?: Difficulty | null;
   tags?: string[];
@@ -60,10 +64,13 @@ export interface UpdateQuestionPatch {
 }
 
 export interface UpdateStoryPatch {
-  hook?: string;
-  narrative?: string;
-  takeaway?: string;
+  mode?: StoryMode;
+  title?: string;
+  rawStory?: string;
+  storytelling?: string;
+  score?: number | null;
   triggers?: { id?: string; text: string }[]; // id present = keep its SR/attempts
+  conversationHooks?: string[];
   category?: Category | null;
   difficulty?: Difficulty | null;
   status?: NoteStatus;
@@ -174,13 +181,18 @@ export const useStore = create<StoreState>((set, get) => ({
         userId: user.id,
         kind: 'story',
         status,
-        hook: input.hook.trim(),
-        narrative: input.narrative.trim(),
-        takeaway: input.takeaway.trim(),
-        triggers: input.triggers
+        mode: input.mode ?? 'interview',
+        title: (input.title ?? '').trim(),
+        rawStory: input.rawStory.trim(),
+        storytelling: (input.storytelling ?? '').trim(),
+        score: input.score ?? null,
+        triggers: (input.triggers ?? [])
           .map((t) => t.trim())
           .filter(Boolean)
           .map((t) => newTrigger(t, now)),
+        conversationHooks: (input.conversationHooks ?? [])
+          .map((h) => h.trim())
+          .filter(Boolean),
         category: input.category ?? null,
         difficulty: input.difficulty ?? null,
         tags: input.tags ?? [],
@@ -235,10 +247,17 @@ export const useStore = create<StoreState>((set, get) => ({
         : note.triggers;
       updated = {
         ...note,
-        hook: p.hook !== undefined ? p.hook.trim() : note.hook,
-        narrative: p.narrative !== undefined ? p.narrative.trim() : note.narrative,
-        takeaway: p.takeaway !== undefined ? p.takeaway.trim() : note.takeaway,
+        mode: p.mode !== undefined ? p.mode : note.mode,
+        title: p.title !== undefined ? p.title.trim() : note.title,
+        rawStory: p.rawStory !== undefined ? p.rawStory.trim() : note.rawStory,
+        storytelling:
+          p.storytelling !== undefined ? p.storytelling.trim() : note.storytelling,
+        score: p.score !== undefined ? p.score : note.score,
         triggers,
+        conversationHooks:
+          p.conversationHooks !== undefined
+            ? p.conversationHooks.map((h) => h.trim()).filter(Boolean)
+            : note.conversationHooks,
         category: p.category !== undefined ? p.category : note.category,
         difficulty: p.difficulty !== undefined ? p.difficulty : note.difficulty,
         status: p.status ?? note.status,

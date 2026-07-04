@@ -79,17 +79,22 @@ describe('note mutations', () => {
     expect(useStore.getState().notes[0].id).toBe(note.id);
   });
 
-  it('addNote(story) creates one trigger per non-empty prompt', async () => {
+  it('addNote(story) trims content and creates one trigger per non-empty prompt', async () => {
     const note = await useStore.getState().addNote({
       kind: 'story',
       status: 'draft',
-      hook: 'h',
-      narrative: 'n',
-      takeaway: 't',
+      title: '  My story  ',
+      rawStory: '  what happened  ',
+      storytelling: '  polished  ',
+      score: 6,
       triggers: ['  first  ', '', '   ', 'second'],
     });
     if (!isStory(note)) throw new Error('expected a story');
     expect(note.status).toBe('draft');
+    expect(note.title).toBe('My story');
+    expect(note.rawStory).toBe('what happened');
+    expect(note.storytelling).toBe('polished');
+    expect(note.score).toBe(6);
     expect(note.triggers.map((t) => t.text)).toEqual(['first', 'second']);
     expect(note.triggers.every((t) => t.attempts.length === 0)).toBe(true);
   });
@@ -97,9 +102,7 @@ describe('note mutations', () => {
   it('updateNote(story) keeps SR/attempts for kept triggers and drops removed ones', async () => {
     const story = await useStore.getState().addNote({
       kind: 'story',
-      hook: 'h',
-      narrative: 'n',
-      takeaway: 't',
+      rawStory: 'what happened',
       triggers: ['keep me', 'drop me'],
     });
     if (!isStory(story)) throw new Error('expected a story');
@@ -174,9 +177,7 @@ describe('recordAttempt', () => {
   it('only touches the practised trigger of a story', async () => {
     const story = await useStore.getState().addNote({
       kind: 'story',
-      hook: 'h',
-      narrative: 'n',
-      takeaway: 't',
+      rawStory: 'what happened',
       triggers: ['one', 'two'],
     });
     if (!isStory(story)) throw new Error('expected a story');

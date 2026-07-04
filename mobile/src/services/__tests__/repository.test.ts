@@ -29,7 +29,9 @@ beforeEach(async () => {
 describe('seeding', () => {
   it('seeds a realistic bank on first load and persists it', async () => {
     const first = await repository.load(USER);
-    expect(first.filter(isStory)).toHaveLength(1);
+    const stories = first.filter(isStory);
+    expect(stories).toHaveLength(2);
+    expect(stories.map((s) => s.mode).sort()).toEqual(['interview', 'personal']);
     expect(first.filter(isQuestion)).toHaveLength(8);
     expect(first.every((n) => n.userId === USER)).toBe(true);
 
@@ -98,6 +100,16 @@ describe('legacy record normalisation', () => {
     if (!s || !isStory(s)) return;
     expect(s.status).toBe('ready');
     expect(s.triggers[0].attempts[0].triggerId).toBe('tr-legacy');
+    // Legacy hook/narrative/takeaway migrate into the free-text fields.
+    expect(s.title).toBe('h');
+    expect(s.rawStory).toBe('h\n\nn\n\nt');
+    expect(s.storytelling).toContain('Takeaway: t');
+    expect(s.score).toBeNull();
+    // Records with no mode default to interview with no conversation hooks.
+    expect(s.mode).toBe('interview');
+    expect(s.conversationHooks).toEqual([]);
+    // The obsolete fields are dropped.
+    expect((s as unknown as { hook?: string }).hook).toBeUndefined();
   });
 });
 

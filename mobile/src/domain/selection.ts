@@ -7,8 +7,8 @@
  *   3. Fallback when nothing is due: brand-new items, else the whole bank.
  *
  * A note expands into one or more `PracticeItem`s: a question is a single item,
- * a story is one item *per trigger* (the trigger is the prompt, the hook +
- * narrative + takeaway is the reference). Draft notes are never practised.
+ * a story is one item *per trigger* (the trigger is the prompt, the story's
+ * storytelling version is the reference). Draft notes are never practised.
  */
 import {
   isQuestion,

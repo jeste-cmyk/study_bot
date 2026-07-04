@@ -15,9 +15,11 @@ import { useRouter } from 'expo-router';
 
 import { CATEGORIES, categoryStyle, colors, fonts, radius, scoreColor } from '@/theme';
 import { Button, Txt } from '@/ui/primitives';
-import { CloseIcon, PlusIcon, SparkleIcon } from '@/ui/icons';
+import { CloseIcon, SparkleIcon } from '@/ui/icons';
 import { useStore } from '@/store/useStore';
-import type { Category, Difficulty, NoteKind } from '@/domain/types';
+import type { Category, Difficulty, NoteKind, StoryMode } from '@/domain/types';
+import { STORY_TEMPLATE } from '@/domain/story';
+import { StoryEditor, type EditableTrigger } from '@/features/story/StoryEditor';
 import {
   NOTE_REVIEW_PASS,
   reviewNoteDraft,
@@ -47,32 +49,32 @@ export default function CaptureScreen() {
   const [reference, setReference] = useState('');
 
   // Story fields
-  const [triggers, setTriggers] = useState<string[]>(['']);
-  const [hook, setHook] = useState('');
-  const [narrative, setNarrative] = useState('');
-  const [takeaway, setTakeaway] = useState('');
+  const [storyMode, setStoryMode] = useState<StoryMode>('interview');
+  const [title, setTitle] = useState('');
+  const [rawStory, setRawStory] = useState(STORY_TEMPLATE);
+  const [storytelling, setStorytelling] = useState('');
+  const [score, setScore] = useState<number | null>(null);
+  const [storyTriggers, setStoryTriggers] = useState<EditableTrigger[]>([{ text: '' }]);
+  const [conversationHooks, setConversationHooks] = useState<string[]>([]);
 
   const [busy, setBusy] = useState(false);
 
-  // "Improve with AI" review state
+  // "Improve with AI" review state (questions only)
   const [reviewing, setReviewing] = useState(false);
   const [review, setReview] = useState<NoteReview | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
 
-  const filledTriggers = triggers.map((t) => t.trim()).filter(Boolean);
+  // The raw box opens pre-seeded with the template, so "has content" means the
+  // user wrote something of their own beyond it.
+  const rawHasContent = rawStory.trim().length > 0 && rawStory.trim() !== STORY_TEMPLATE.trim();
 
   // Looser bar: enough content to be worth keeping around. A draft is for
-  // incomplete notes, so this is all a draft needs (and what review needs).
+  // incomplete notes, so this is all a draft needs.
   const hasAnyContent =
-    kind === 'question'
-      ? Boolean(text.trim() || reference.trim())
-      : filledTriggers.length > 0 || [hook, narrative, takeaway].some((s) => s.trim());
+    kind === 'question' ? Boolean(text.trim() || reference.trim()) : rawHasContent;
 
   // Strict bar: complete enough to be marked "ready".
-  const isComplete =
-    kind === 'question'
-      ? text.trim().length > 0
-      : filledTriggers.length > 0 && [hook, narrative, takeaway].some((s) => s.trim());
+  const isComplete = kind === 'question' ? text.trim().length > 0 : rawHasContent;
 
   // Drafts can be saved while still incomplete; "ready" notes can't.
   const canSave = !busy && (isDraft ? hasAnyContent : isComplete);
@@ -84,11 +86,12 @@ export default function CaptureScreen() {
     setReviewing(true);
     setReviewError(null);
     try {
-      const result = await reviewNoteDraft(
-        kind === 'question'
-          ? { kind, question: text, reference: reference.trim() || null, category, company: null }
-          : { kind, hook, narrative, takeaway, triggers: filledTriggers, category },
-      );
+      const result = await reviewNoteDraft({
+        question: text,
+        reference: reference.trim() || null,
+        category,
+        company: null,
+      });
       setReview(result);
     } catch (e) {
       setReviewError(e instanceof Error ? e.message : 'Could not reach the reviewer.');
@@ -97,19 +100,16 @@ export default function CaptureScreen() {
     }
   };
 
-  const setTrigger = (i: number, value: string) =>
-    setTriggers((prev) => prev.map((t, idx) => (idx === i ? value : t)));
-  const addTrigger = () => setTriggers((prev) => [...prev, '']);
-  const removeTrigger = (i: number) =>
-    setTriggers((prev) => (prev.length === 1 ? prev : prev.filter((_, idx) => idx !== i)));
-
   const resetBody = () => {
     setText('');
     setReference('');
-    setTriggers(['']);
-    setHook('');
-    setNarrative('');
-    setTakeaway('');
+    setStoryMode('interview');
+    setTitle('');
+    setRawStory(STORY_TEMPLATE);
+    setStorytelling('');
+    setScore(null);
+    setStoryTriggers([{ text: '' }]);
+    setConversationHooks([]);
     setReview(null);
     setReviewError(null);
   };
@@ -133,10 +133,13 @@ export default function CaptureScreen() {
         await addNote({
           kind: 'story',
           status,
-          hook,
-          narrative,
-          takeaway,
-          triggers: filledTriggers,
+          mode: storyMode,
+          title,
+          rawStory,
+          storytelling,
+          score,
+          triggers: storyTriggers.map((t) => t.text.trim()).filter(Boolean),
+          conversationHooks,
           category,
           difficulty,
         });
@@ -216,17 +219,23 @@ export default function CaptureScreen() {
               setReference={setReference}
             />
           ) : (
-            <StoryFields
-              triggers={triggers}
-              setTrigger={setTrigger}
-              addTrigger={addTrigger}
-              removeTrigger={removeTrigger}
-              hook={hook}
-              setHook={setHook}
-              narrative={narrative}
-              setNarrative={setNarrative}
-              takeaway={takeaway}
-              setTakeaway={setTakeaway}
+            <StoryEditor
+              mode={storyMode}
+              setMode={setStoryMode}
+              title={title}
+              setTitle={setTitle}
+              rawStory={rawStory}
+              setRawStory={setRawStory}
+              storytelling={storytelling}
+              setStorytelling={setStorytelling}
+              score={score}
+              setScore={setScore}
+              triggers={storyTriggers}
+              setTriggers={setStoryTriggers}
+              conversationHooks={conversationHooks}
+              setConversationHooks={setConversationHooks}
+              category={category}
+              autoFocusRaw
             />
           )}
 
@@ -296,36 +305,41 @@ export default function CaptureScreen() {
             </View>
           </Pressable>
 
-          {/* Improve with AI */}
-          <Pressable
-            onPress={runReview}
-            disabled={!canReview}
-            style={({ pressed }) => [
-              styles.improveBtn,
-              { opacity: canReview ? (pressed ? 0.85 : 1) : 0.5 },
-            ]}>
-            {reviewing ? (
-              <ActivityIndicator size="small" color={colors.accentInk} />
-            ) : (
-              <SparkleIcon size={17} color={colors.accentInk} />
-            )}
-            <Txt variant="bodyStrong" style={{ fontSize: 13.5, color: colors.accentInk }}>
-              {reviewing ? 'Reviewing…' : review ? 'Review again with AI' : 'Improve with AI'}
-            </Txt>
-          </Pressable>
-          <Txt variant="small" style={{ marginTop: 7, lineHeight: 18 }}>
-            Have the AI score this note and suggest what would make it stronger before you save.
-          </Txt>
-
-          {reviewError ? (
-            <View style={styles.reviewError}>
-              <Txt variant="small" color={colors.danger} style={{ lineHeight: 18 }}>
-                {reviewError}
+          {/* Improve with AI — questions score/refine here; stories analyze in-editor */}
+          {kind === 'question' ? (
+            <>
+              <Pressable
+                onPress={runReview}
+                disabled={!canReview}
+                style={({ pressed }) => [
+                  styles.improveBtn,
+                  { opacity: canReview ? (pressed ? 0.85 : 1) : 0.5 },
+                ]}>
+                {reviewing ? (
+                  <ActivityIndicator size="small" color={colors.accentInk} />
+                ) : (
+                  <SparkleIcon size={17} color={colors.accentInk} />
+                )}
+                <Txt variant="bodyStrong" style={{ fontSize: 13.5, color: colors.accentInk }}>
+                  {reviewing ? 'Reviewing…' : review ? 'Review again with AI' : 'Improve with AI'}
+                </Txt>
+              </Pressable>
+              <Txt variant="small" style={{ marginTop: 7, lineHeight: 18 }}>
+                Have the AI score this note and suggest what would make it stronger before you
+                save.
               </Txt>
-            </View>
-          ) : null}
 
-          {review ? <ReviewResult review={review} /> : null}
+              {reviewError ? (
+                <View style={styles.reviewError}>
+                  <Txt variant="small" color={colors.danger} style={{ lineHeight: 18 }}>
+                    {reviewError}
+                  </Txt>
+                </View>
+              ) : null}
+
+              {review ? <ReviewResult review={review} /> : null}
+            </>
+          ) : null}
 
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
             <Button
@@ -393,105 +407,6 @@ function QuestionFields({
         placeholderTextColor={colors.faint}
         multiline
         style={[styles.input, styles.questionInput]}
-      />
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Story body
-// ---------------------------------------------------------------------------
-
-function StoryFields({
-  triggers,
-  setTrigger,
-  addTrigger,
-  removeTrigger,
-  hook,
-  setHook,
-  narrative,
-  setNarrative,
-  takeaway,
-  setTakeaway,
-}: {
-  triggers: string[];
-  setTrigger: (i: number, v: string) => void;
-  addTrigger: () => void;
-  removeTrigger: (i: number) => void;
-  hook: string;
-  setHook: (s: string) => void;
-  narrative: string;
-  setNarrative: (s: string) => void;
-  takeaway: string;
-  setTakeaway: (s: string) => void;
-}) {
-  return (
-    <>
-      <Txt variant="label" style={styles.label}>
-        TRIGGERS *
-      </Txt>
-      <Txt variant="small" style={{ marginBottom: 8, lineHeight: 18 }}>
-        Topics that should remind you to tell this story (e.g. travel mishaps, bad bosses).
-        You’ll practise each one separately.
-      </Txt>
-      {triggers.map((t, i) => (
-        <View key={i} style={styles.triggerRow}>
-          <TextInput
-            value={t}
-            onChangeText={(v) => setTrigger(i, v)}
-            placeholder={`Trigger ${i + 1}`}
-            placeholderTextColor={colors.faint}
-            autoFocus={i === 0}
-            style={[styles.input, { flex: 1 }]}
-          />
-          {triggers.length > 1 ? (
-            <Pressable onPress={() => removeTrigger(i)} hitSlop={8} style={styles.triggerRemove}>
-              <CloseIcon size={16} color={colors.muted2} />
-            </Pressable>
-          ) : null}
-        </View>
-      ))}
-      <Pressable onPress={addTrigger} style={styles.addTrigger}>
-        <PlusIcon size={15} color={colors.accentInk} />
-        <Txt variant="bodyStrong" style={{ fontSize: 13, color: colors.accentInk }}>
-          Add trigger
-        </Txt>
-      </Pressable>
-
-      <Txt variant="label" style={styles.label}>
-        THE HOOK
-      </Txt>
-      <TextInput
-        value={hook}
-        onChangeText={setHook}
-        placeholder="One-sentence teaser…"
-        placeholderTextColor={colors.faint}
-        multiline
-        style={[styles.input, styles.refInput]}
-      />
-
-      <Txt variant="label" style={styles.label}>
-        THE CORE NARRATIVE
-      </Txt>
-      <TextInput
-        value={narrative}
-        onChangeText={setNarrative}
-        placeholder="Bullet points of the main events — keep it brief…"
-        placeholderTextColor={colors.faint}
-        multiline
-        style={[styles.input, styles.questionInput]}
-      />
-
-      <Txt variant="label" style={styles.label}>
-        THE TAKEAWAY
-      </Txt>
-      <TextInput
-        value={takeaway}
-        onChangeText={setTakeaway}
-        placeholder="The punchline or realization…"
-        placeholderTextColor={colors.faint}
-        multiline
-        style={[styles.input, styles.refInput]}
       />
     </>
   );
@@ -608,27 +523,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   questionInput: { minHeight: 84, fontSize: 16, fontFamily: fonts.medium, textAlignVertical: 'top' },
-  refInput: { minHeight: 60, textAlignVertical: 'top' },
   segment: { flexDirection: 'row', gap: 8 },
   segmentBtn: {
     flex: 1,
     paddingVertical: 11,
     borderRadius: radius.md,
     alignItems: 'center',
-  },
-  triggerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  triggerRemove: { padding: 4 },
-  addTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 11,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#C7CCE6',
-    backgroundColor: colors.accentTint,
   },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   chip: { borderRadius: radius.sm, paddingHorizontal: 13, paddingVertical: 7 },

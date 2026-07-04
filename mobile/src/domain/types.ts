@@ -9,6 +9,13 @@ export type Rating = 'again' | 'hard' | 'good' | 'easy';
 export type NoteKind = 'question' | 'story';
 /** `draft` notes are saved but excluded from practice/exams until marked ready. */
 export type NoteStatus = 'ready' | 'draft';
+/**
+ * Which coach a story is authored for:
+ * - `interview` — a professional STAR-style answer graded on impact.
+ * - `personal`  — a story told to friends, graded on how well it lands, with
+ *                 conversation directions for keeping the chat going.
+ */
+export type StoryMode = 'interview' | 'personal';
 
 /** Spaced-repetition state for a question (SM-2 variant). */
 export interface SRState {
@@ -72,10 +79,26 @@ export interface Story {
   userId: string;
   kind: 'story';
   status: NoteStatus;
-  hook: string; // one-sentence teaser
-  narrative: string; // bullet points of the main events
-  takeaway: string; // the punchline / realization
+  /** Which coach authored/scores this story. */
+  mode: StoryMode;
+  /** Short title — filled by AI on analyze, editable by hand. */
+  title: string;
+  /** Box 1: the user's own account, seeded with guiding prompts. AI never
+   *  rewrites this; it only appends follow-up questions to the end. */
+  rawStory: string;
+  /** Box 2: the AI's polished storytelling version. Editable, and the
+   *  reference a story's triggers are graded against. */
+  storytelling: string;
+  /** AI-assigned readiness score (0–10), editable. `null` until analyzed. */
+  score: number | null;
+  /** AI-generated prompts; each is drilled separately with its own SR state. */
   triggers: StoryTrigger[];
+  /**
+   * Personal mode only: ways to keep the conversation going after telling the
+   * story — questions to ask, opinions to float, related/unrelated pivots.
+   * Empty for interview stories.
+   */
+  conversationHooks: string[];
   category: Category | null;
   difficulty: Difficulty | null;
   tags: string[];
@@ -88,22 +111,20 @@ export type Note = Question | Story;
 export const isQuestion = (n: Note): n is Question => n.kind === 'question';
 export const isStory = (n: Note): n is Story => n.kind === 'story';
 
-/** The reference answer a story's triggers are graded against. */
+/**
+ * The reference a story's triggers are graded against: the polished
+ * storytelling version, falling back to the user's raw account if they haven't
+ * analyzed it yet.
+ */
 export function storyReference(
-  s: Pick<Story, 'hook' | 'narrative' | 'takeaway'>,
+  s: Pick<Story, 'storytelling' | 'rawStory'>,
 ): string {
-  return [
-    s.hook ? `Hook: ${s.hook}` : '',
-    s.narrative ? `Core narrative:\n${s.narrative}` : '',
-    s.takeaway ? `Takeaway: ${s.takeaway}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+  return s.storytelling.trim() || s.rawStory.trim();
 }
 
 /** A short title for list/preview rows, regardless of note kind. */
 export function noteTitle(n: Note): string {
-  if (isStory(n)) return n.hook || n.triggers[0]?.text || 'Untitled story';
+  if (isStory(n)) return n.title || n.triggers[0]?.text || 'Untitled story';
   return n.text;
 }
 

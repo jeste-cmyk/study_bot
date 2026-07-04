@@ -21,14 +21,12 @@ const MINUTE = 60 * 1000;
 const DAY = 24 * 60 * MINUTE;
 
 describe('storyReference', () => {
-  it('joins hook, narrative and takeaway into labelled sections', () => {
-    expect(storyReference({ hook: 'h', narrative: 'n', takeaway: 't' })).toBe(
-      'Hook: h\n\nCore narrative:\nn\n\nTakeaway: t',
-    );
+  it('uses the polished storytelling version', () => {
+    expect(storyReference({ storytelling: 'polished', rawStory: 'raw notes' })).toBe('polished');
   });
 
-  it('omits empty sections', () => {
-    expect(storyReference({ hook: 'h', narrative: '', takeaway: '' })).toBe('Hook: h');
+  it('falls back to the raw story when not yet analyzed', () => {
+    expect(storyReference({ storytelling: '   ', rawStory: 'raw notes' })).toBe('raw notes');
   });
 });
 
@@ -37,12 +35,12 @@ describe('noteTitle', () => {
     expect(noteTitle(makeQuestion({ text: 'Why us?' }))).toBe('Why us?');
   });
 
-  it('prefers the story hook, then the first trigger, then a placeholder', () => {
-    expect(noteTitle(makeStory({ hook: 'The hook' }))).toBe('The hook');
+  it('prefers the story title, then the first trigger, then a placeholder', () => {
+    expect(noteTitle(makeStory({ title: 'The title' }))).toBe('The title');
     expect(
-      noteTitle(makeStory({ hook: '', triggers: [makeTrigger({ text: 'trig' })] })),
+      noteTitle(makeStory({ title: '', triggers: [makeTrigger({ text: 'trig' })] })),
     ).toBe('trig');
-    expect(noteTitle(makeStory({ hook: '', triggers: [] }))).toBe('Untitled story');
+    expect(noteTitle(makeStory({ title: '', triggers: [] }))).toBe('Untitled story');
   });
 });
 

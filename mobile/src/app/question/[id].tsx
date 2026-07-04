@@ -1,5 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -13,14 +21,12 @@ import {
   statusStyle,
 } from '@/theme';
 import { Button, Card, Pill, Tag, Txt } from '@/ui/primitives';
-import { ChevronLeft, CloseIcon, PlusIcon } from '@/ui/icons';
+import { ChevronLeft } from '@/ui/icons';
 import { useStore } from '@/store/useStore';
 import {
   isStory,
   isDue,
-  lastScore,
   noteAttempts,
-  noteReviewStatus,
   practiceMode,
   reviewStatus,
   type Category,
@@ -28,7 +34,9 @@ import {
   type Note,
   type Question,
   type Story,
+  type StoryMode,
 } from '@/domain/types';
+import { StoryEditor, type EditableTrigger } from '@/features/story/StoryEditor';
 import { formatInterval } from '@/domain/spacedRepetition';
 
 const DIFFICULTIES: Difficulty[] = ['Easy', 'Medium', 'Hard'];
@@ -44,8 +52,6 @@ function nextReviewLabel(dueAt: string): { text: string; color: string } {
   return { text: `In ${days} days`, color: colors.textSecondary };
 }
 
-type EditTrigger = { id?: string; text: string };
-
 export default function NoteDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -59,11 +65,6 @@ export default function NoteDetail() {
   const [text, setText] = useState('');
   const [reference, setReference] = useState('');
   const [company, setCompany] = useState('');
-  // Story edit state
-  const [hook, setHook] = useState('');
-  const [narrative, setNarrative] = useState('');
-  const [takeaway, setTakeaway] = useState('');
-  const [editTriggers, setEditTriggers] = useState<EditTrigger[]>([]);
   // Shared
   const [category, setCategory] = useState<Category | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
@@ -82,48 +83,30 @@ export default function NoteDetail() {
     );
   }
 
-  const story = isStory(note);
+  // Stories get the full authoring editor, identical to creation.
+  if (isStory(note)) return <StoryDetail note={note} />;
+
   const c = categoryStyle(note.category);
 
   const startEdit = () => {
+    if (isStory(note)) return;
     setCategory(note.category);
     setDifficulty(note.difficulty);
-    if (isStory(note)) {
-      setHook(note.hook);
-      setNarrative(note.narrative);
-      setTakeaway(note.takeaway);
-      setEditTriggers(
-        note.triggers.length
-          ? note.triggers.map((t) => ({ id: t.id, text: t.text }))
-          : [{ text: '' }],
-      );
-    } else {
-      setText(note.text);
-      setReference(note.reference ?? '');
-      setCompany(note.company ?? '');
-    }
+    setText(note.text);
+    setReference(note.reference ?? '');
+    setCompany(note.company ?? '');
     setEditing(true);
   };
 
   const saveEdit = async () => {
-    if (isStory(note)) {
-      await updateNote(note.id, {
-        hook,
-        narrative,
-        takeaway,
-        triggers: editTriggers.map((t) => ({ id: t.id, text: t.text })).filter((t) => t.text.trim()),
-        category,
-        difficulty,
-      });
-    } else {
-      await updateNote(note.id, {
-        text,
-        reference: reference.trim() || null,
-        category,
-        company: company.trim() || null,
-        difficulty,
-      });
-    }
+    if (isStory(note)) return;
+    await updateNote(note.id, {
+      text,
+      reference: reference.trim() || null,
+      category,
+      company: company.trim() || null,
+      difficulty,
+    });
     setEditing(false);
   };
 
@@ -166,64 +149,33 @@ export default function NoteDetail() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
         {editing ? (
-          story ? (
-            <StoryEdit
-              hook={hook}
-              setHook={setHook}
-              narrative={narrative}
-              setNarrative={setNarrative}
-              takeaway={takeaway}
-              setTakeaway={setTakeaway}
-              triggers={editTriggers}
-              setTriggers={setEditTriggers}
-              category={category}
-              setCategory={setCategory}
-              difficulty={difficulty}
-              setDifficulty={setDifficulty}
-              onSave={saveEdit}
-            />
-          ) : (
-            <QuestionEdit
-              text={text}
-              setText={setText}
-              reference={reference}
-              setReference={setReference}
-              company={company}
-              setCompany={setCompany}
-              category={category}
-              setCategory={setCategory}
-              difficulty={difficulty}
-              setDifficulty={setDifficulty}
-              onSave={saveEdit}
-            />
-          )
+          <QuestionEdit
+            text={text}
+            setText={setText}
+            reference={reference}
+            setReference={setReference}
+            company={company}
+            setCompany={setCompany}
+            category={category}
+            setCategory={setCategory}
+            difficulty={difficulty}
+            setDifficulty={setDifficulty}
+            onSave={saveEdit}
+          />
         ) : (
           <>
             <View style={styles.metaRow}>
-              {story ? <Tag label="Story" bg="#F2ECFB" fg="#6A3FB0" /> : null}
               {note.status === 'draft' ? <Tag label="Draft" bg="#EFEDE8" fg="#8A867C" /> : null}
               <Pill label={note.category ?? 'General'} bg={c.bg} fg={c.fg} />
               <Txt variant="mono">
-                {[story ? null : (note as Question).company, note.difficulty]
-                  .filter(Boolean)
-                  .join(' · ')}
+                {[note.company, note.difficulty].filter(Boolean).join(' · ')}
               </Txt>
             </View>
 
-            {story ? (
-              <StoryView note={note as Story} />
-            ) : (
-              <QuestionView note={note as Question} sparks={sparks} />
-            )}
+            <QuestionView note={note} sparks={sparks} />
 
             <Button
-              title={
-                story
-                  ? 'Practice this story →'
-                  : isDue(note as Question)
-                    ? 'Practice this now →'
-                    : 'Practice anyway →'
-              }
+              title={isDue(note) ? 'Practice this now →' : 'Practice anyway →'}
               variant="dark"
               onPress={() => router.push(`/practice?focus=${note.id}`)}
             />
@@ -316,75 +268,184 @@ function QuestionView({ note, sparks }: { note: Question; sparks: number[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Story — view
+// Story — detail (full authoring editor)
 // ---------------------------------------------------------------------------
 
-function StoryView({ note }: { note: Story }) {
+/** Read-only spaced-repetition schedule for a saved story's triggers. */
+function TriggerSchedule({ note }: { note: Story }) {
   return (
-    <>
-      <Txt variant="h3" style={{ lineHeight: 25, marginBottom: 16 }}>
-        {note.hook || 'Untitled story'}
+    <Card style={{ marginTop: 8, marginBottom: 14 }}>
+      <Txt variant="label" style={{ marginBottom: 10 }}>
+        TRIGGERS & SCHEDULE
       </Txt>
-
-      <Section label="THE HOOK" body={note.hook} />
-      <Section label="THE CORE NARRATIVE" body={note.narrative} />
-      <Section label="THE TAKEAWAY" body={note.takeaway} />
-
-      <Card style={{ marginBottom: 14 }}>
-        <Txt variant="label" style={{ marginBottom: 10 }}>
-          TRIGGERS & SCHEDULE
-        </Txt>
-        {note.triggers.length === 0 ? (
-          <Txt variant="small">No triggers yet — add one to practise this story.</Txt>
-        ) : (
-          note.triggers.map((t, i) => {
-            const st = statusStyle(reviewStatus(t));
-            const review = nextReviewLabel(t.sr.dueAt);
-            return (
-              <View
-                key={t.id}
-                style={[styles.triggerScheduleRow, i < note.triggers.length - 1 && styles.attemptDivider]}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
-                  <Txt variant="bodyStrong" style={{ fontSize: 13.5, color: colors.text, marginBottom: 4 }}>
-                    {t.text}
-                  </Txt>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Tag label={st.label} bg={st.bg} fg={st.fg} />
-                    <Txt variant="monoSmall">{review.text}</Txt>
-                  </View>
-                </View>
-                <Txt
-                  variant="mono"
-                  style={{ fontFamily: fonts.monoSemibold, color: scoreColor(t.attempts[0]?.aiScore ?? null) }}>
-                  {t.attempts[0] ? `${t.attempts[0].aiScore}/10` : '—'}
+      {note.triggers.length === 0 ? (
+        <Txt variant="small">Analyze or add a trigger to start practising this story.</Txt>
+      ) : (
+        note.triggers.map((t, i) => {
+          const st = statusStyle(reviewStatus(t));
+          const review = nextReviewLabel(t.sr.dueAt);
+          return (
+            <View
+              key={t.id}
+              style={[styles.triggerScheduleRow, i < note.triggers.length - 1 && styles.attemptDivider]}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Txt variant="bodyStrong" style={{ fontSize: 13.5, color: colors.text, marginBottom: 4 }}>
+                  {t.text}
                 </Txt>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Tag label={st.label} bg={st.bg} fg={st.fg} />
+                  <Txt variant="monoSmall">{review.text}</Txt>
+                </View>
               </View>
-            );
-          })
-        )}
-      </Card>
-
-      {noteAttempts(note).length > 0 ? <RecentAttempts note={note} /> : null}
-    </>
+              <Txt
+                variant="mono"
+                style={{ fontFamily: fonts.monoSemibold, color: scoreColor(t.attempts[0]?.aiScore ?? null) }}>
+                {t.attempts[0] ? `${t.attempts[0].aiScore}/10` : '—'}
+              </Txt>
+            </View>
+          );
+        })
+      )}
+    </Card>
   );
 }
 
-function Section({ label, body }: { label: string; body: string }) {
+function StoryDetail({ note }: { note: Story }) {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const updateNote = useStore((s) => s.updateNote);
+  const deleteNote = useStore((s) => s.deleteNote);
+
+  const [mode, setMode] = useState<StoryMode>(note.mode);
+  const [title, setTitle] = useState(note.title);
+  const [rawStory, setRawStory] = useState(note.rawStory);
+  const [storytelling, setStorytelling] = useState(note.storytelling);
+  const [score, setScore] = useState<number | null>(note.score);
+  const [triggers, setTriggers] = useState<EditableTrigger[]>(
+    note.triggers.length
+      ? note.triggers.map((t) => ({ id: t.id, text: t.text }))
+      : [{ text: '' }],
+  );
+  const [conversationHooks, setConversationHooks] = useState<string[]>(note.conversationHooks);
+  const [category, setCategory] = useState<Category | null>(note.category);
+  const [difficulty, setDifficulty] = useState<Difficulty | null>(note.difficulty);
+  const [busy, setBusy] = useState(false);
+
+  const c = categoryStyle(note.category);
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      await updateNote(note.id, {
+        mode,
+        title,
+        rawStory,
+        storytelling,
+        score,
+        triggers: triggers.map((t) => ({ id: t.id, text: t.text })).filter((t) => t.text.trim()),
+        conversationHooks,
+        category,
+        difficulty,
+      });
+      // Re-sync so newly-added triggers pick up their persisted ids and a second
+      // save doesn't duplicate them.
+      const fresh = useStore.getState().getNote(note.id);
+      if (fresh && isStory(fresh)) {
+        setTriggers(fresh.triggers.map((t) => ({ id: t.id, text: t.text })));
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleStatus = () =>
+    updateNote(note.id, { status: note.status === 'draft' ? 'ready' : 'draft' });
+  const remove = async () => {
+    await deleteNote(note.id);
+    router.back();
+  };
+
   return (
-    <Card style={{ marginBottom: 12 }}>
-      <Txt variant="label" style={{ marginBottom: 8 }}>
-        {label}
-      </Txt>
-      {body.trim() ? (
-        <Txt variant="body" style={{ color: colors.text }}>
-          {body}
-        </Txt>
-      ) : (
-        <Txt variant="small" style={{ color: colors.faint }}>
-          —
-        </Txt>
-      )}
-    </Card>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.headerSide}>
+          <ChevronLeft size={20} color={colors.accentInk} />
+          <Txt variant="bodyStrong" color={colors.accentInk}>
+            Bank
+          </Txt>
+        </Pressable>
+        <Txt variant="mono">{note.id.slice(0, 6).toUpperCase()}</Txt>
+        <View style={styles.headerSideEnd} />
+      </View>
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={8}>
+        <ScrollView
+          contentContainerStyle={{ padding: 18, paddingBottom: 28 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.metaRow}>
+            <Tag
+              label={mode === 'personal' ? 'Story · For friends' : 'Story · Interview'}
+              bg="#F2ECFB"
+              fg="#6A3FB0"
+            />
+            {note.status === 'draft' ? <Tag label="Draft" bg="#EFEDE8" fg="#8A867C" /> : null}
+            <Pill label={note.category ?? 'General'} bg={c.bg} fg={c.fg} />
+          </View>
+
+          <StoryEditor
+            mode={mode}
+            setMode={setMode}
+            title={title}
+            setTitle={setTitle}
+            rawStory={rawStory}
+            setRawStory={setRawStory}
+            storytelling={storytelling}
+            setStorytelling={setStorytelling}
+            score={score}
+            setScore={setScore}
+            triggers={triggers}
+            setTriggers={setTriggers}
+            conversationHooks={conversationHooks}
+            setConversationHooks={setConversationHooks}
+            category={category}
+          />
+
+          <CategoryPicker category={category} setCategory={setCategory} />
+          <Txt variant="label" style={styles.editLabel}>
+            DIFFICULTY
+          </Txt>
+          <DifficultyPicker difficulty={difficulty} setDifficulty={setDifficulty} />
+
+          <Button title="Save changes" style={{ marginTop: 24 }} loading={busy} onPress={save} />
+
+          <Button
+            title="Practice this story →"
+            variant="dark"
+            style={{ marginTop: 12 }}
+            onPress={() => router.push(`/practice?focus=${note.id}`)}
+          />
+
+          <TriggerSchedule note={note} />
+
+          {noteAttempts(note).length > 0 ? <RecentAttempts note={note} /> : null}
+
+          <Pressable onPress={toggleStatus} style={{ marginTop: 6, alignSelf: 'center' }} hitSlop={8}>
+            <Txt variant="small" color={colors.accentInk} style={{ fontFamily: fonts.semibold }}>
+              {note.status === 'draft' ? 'Mark as ready for practice' : 'Move to drafts'}
+            </Txt>
+          </Pressable>
+          <Pressable onPress={remove} style={{ marginTop: 14, alignSelf: 'center' }} hitSlop={8}>
+            <Txt variant="small" color={colors.danger}>
+              Delete note
+            </Txt>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -547,117 +608,6 @@ function QuestionEdit({
           <DifficultyPicker difficulty={difficulty} setDifficulty={setDifficulty} />
         </View>
       </View>
-
-      <Button title="Save changes" style={{ marginTop: 24 }} onPress={onSave} />
-    </>
-  );
-}
-
-function StoryEdit({
-  hook,
-  setHook,
-  narrative,
-  setNarrative,
-  takeaway,
-  setTakeaway,
-  triggers,
-  setTriggers,
-  category,
-  setCategory,
-  difficulty,
-  setDifficulty,
-  onSave,
-}: {
-  hook: string;
-  setHook: (s: string) => void;
-  narrative: string;
-  setNarrative: (s: string) => void;
-  takeaway: string;
-  setTakeaway: (s: string) => void;
-  triggers: EditTrigger[];
-  setTriggers: (t: EditTrigger[]) => void;
-  category: Category | null;
-  setCategory: (c: Category | null) => void;
-  difficulty: Difficulty | null;
-  setDifficulty: (d: Difficulty | null) => void;
-  onSave: () => void;
-}) {
-  const setText = (i: number, text: string) =>
-    setTriggers(triggers.map((t, idx) => (idx === i ? { ...t, text } : t)));
-  const add = () => setTriggers([...triggers, { text: '' }]);
-  const remove = (i: number) =>
-    setTriggers(triggers.length === 1 ? triggers : triggers.filter((_, idx) => idx !== i));
-
-  return (
-    <>
-      <Txt variant="label" style={styles.editLabel}>
-        TRIGGERS
-      </Txt>
-      {triggers.map((t, i) => (
-        <View key={i} style={styles.triggerRow}>
-          <TextInput
-            value={t.text}
-            onChangeText={(v) => setText(i, v)}
-            placeholder={`Trigger ${i + 1}`}
-            placeholderTextColor={colors.faint}
-            style={[styles.input, { flex: 1 }]}
-          />
-          {triggers.length > 1 ? (
-            <Pressable onPress={() => remove(i)} hitSlop={8} style={{ padding: 4 }}>
-              <CloseIcon size={16} color={colors.muted2} />
-            </Pressable>
-          ) : null}
-        </View>
-      ))}
-      <Pressable onPress={add} style={styles.addTrigger}>
-        <PlusIcon size={15} color={colors.accentInk} />
-        <Txt variant="bodyStrong" style={{ fontSize: 13, color: colors.accentInk }}>
-          Add trigger
-        </Txt>
-      </Pressable>
-
-      <Txt variant="label" style={styles.editLabel}>
-        THE HOOK
-      </Txt>
-      <TextInput
-        value={hook}
-        onChangeText={setHook}
-        multiline
-        placeholder="One-sentence teaser…"
-        placeholderTextColor={colors.faint}
-        style={[styles.input, { minHeight: 60 }]}
-      />
-
-      <Txt variant="label" style={styles.editLabel}>
-        THE CORE NARRATIVE
-      </Txt>
-      <TextInput
-        value={narrative}
-        onChangeText={setNarrative}
-        multiline
-        placeholder="Bullet points of the main events…"
-        placeholderTextColor={colors.faint}
-        style={[styles.input, { minHeight: 90 }]}
-      />
-
-      <Txt variant="label" style={styles.editLabel}>
-        THE TAKEAWAY
-      </Txt>
-      <TextInput
-        value={takeaway}
-        onChangeText={setTakeaway}
-        multiline
-        placeholder="The punchline or realization…"
-        placeholderTextColor={colors.faint}
-        style={[styles.input, { minHeight: 60 }]}
-      />
-
-      <CategoryPicker category={category} setCategory={setCategory} />
-
-      <Txt variant="label" style={styles.editLabel}>
-        DIFFICULTY
-      </Txt>
-      <DifficultyPicker difficulty={difficulty} setDifficulty={setDifficulty} />
 
       <Button title="Save changes" style={{ marginTop: 24 }} onPress={onSave} />
     </>

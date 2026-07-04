@@ -12,6 +12,7 @@
  * Mode B (no reference):     draft a model answer AND grade against it.
  */
 import { env, isAiConfigured } from '@/config/env';
+import type { StoryMode } from '@/domain/types';
 
 export interface EvaluationInput {
   question: string;
@@ -35,18 +36,10 @@ export const aiEnabled = isAiConfigured;
 // Note review ("Improve with AI")
 // ---------------------------------------------------------------------------
 
-/** The draft being reviewed while a user is creating a note. */
+/** The question draft being reviewed while a user is creating a note. */
 export interface NoteReviewInput {
-  kind: 'question' | 'story';
-  // Question fields
   question?: string;
   reference?: string | null;
-  // Story fields
-  hook?: string;
-  narrative?: string;
-  takeaway?: string;
-  triggers?: string[];
-  // Shared metadata
   category?: string | null;
   company?: string | null;
 }
@@ -64,6 +57,42 @@ export interface NoteReview {
 
 /** A note scoring at or above this is considered strong enough to keep as-is. */
 export const NOTE_REVIEW_PASS = 7;
+
+// ---------------------------------------------------------------------------
+// Story analysis ("Analyze with AI")
+// ---------------------------------------------------------------------------
+
+/** The raw story a user is authoring, sent for analysis. */
+export interface StoryAnalysisInput {
+  rawStory: string;
+  /** Which coach to analyze with. Defaults to interview when omitted. */
+  mode?: StoryMode;
+  category?: string | null;
+}
+
+/**
+ * What "Analyze with AI" produces from a raw story. The caller keeps the user's
+ * raw text intact and only appends {@link StoryAnalysis.questions} to it; the
+ * other fields populate the title, the storytelling box, the score and the
+ * trigger list.
+ */
+export interface StoryAnalysis {
+  /** A short, memorable title for the story. */
+  title: string;
+  /** A polished, spoken-aloud storytelling version of the raw account. */
+  storytelling: string;
+  /** Readiness score for the story as told (0–10). */
+  score: number;
+  /** Follow-up questions about missing details, appended to the raw box. */
+  questions: string[];
+  /** Prompts this story answers — interview questions, or conversational cues. */
+  triggers: string[];
+  /**
+   * Personal mode only: ways to keep the conversation going after telling it.
+   * Empty for interview stories.
+   */
+  conversationHooks: string[];
+}
 
 // ---------------------------------------------------------------------------
 // Transcription
@@ -263,19 +292,8 @@ async function reviewNoteWithOpenAI(input: NoteReviewInput): Promise<NoteReview>
   return normalizeReview(parsed);
 }
 
-/** Render the draft as the prompt body, shaped by note kind. */
+/** Render the question draft as the prompt body. */
 function describeNote(input: NoteReviewInput): string {
-  if (input.kind === 'story') {
-    return [
-      'Review this STORY note (a personal anecdote the candidate wants to tell on cue).',
-      input.triggers?.length ? `TRIGGERS: ${input.triggers.join('; ')}` : '',
-      input.hook ? `HOOK: ${input.hook}` : 'HOOK: (empty)',
-      input.narrative ? `CORE NARRATIVE:\n${input.narrative}` : 'CORE NARRATIVE: (empty)',
-      input.takeaway ? `TAKEAWAY: ${input.takeaway}` : 'TAKEAWAY: (empty)',
-    ]
-      .filter(Boolean)
-      .join('\n');
-  }
   return [
     'Review this QUESTION note.',
     `QUESTION: ${input.question ?? '(empty)'}`,
@@ -283,6 +301,124 @@ function describeNote(input: NoteReviewInput): string {
       ? `REFERENCE ANSWER:\n${input.reference}`
       : 'REFERENCE ANSWER: (empty — none written yet)',
   ].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Story analysis
+// ---------------------------------------------------------------------------
+
+/**
+ * Analyze a raw story into a title, a storytelling version, a score, follow-up
+ * questions and trigger prompts. Mirrors the proxy → OpenAI → local-fallback
+ * resolution used by {@link evaluateAnswer}.
+ */
+export async function analyzeStory(input: StoryAnalysisInput): Promise<StoryAnalysis> {
+  if (env.aiProxyUrl) {
+    const res = await fetch(`${env.aiProxyUrl.replace(/\/$/, '')}/analyze-story`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) throw new Error(`Story analysis proxy failed (${res.status})`);
+    return normalizeAnalysis(await res.json(), input.mode ?? 'interview');
+  }
+
+  if (env.openai.apiKey) {
+    return analyzeStoryWithOpenAI(input);
+  }
+
+  return localAnalysis(input);
+}
+
+async function analyzeStoryWithOpenAI(input: StoryAnalysisInput): Promise<StoryAnalysis> {
+  const mode: StoryMode = input.mode ?? 'interview';
+
+  const sys =
+    mode === 'personal'
+      ? 'You are a storytelling coach for everyday conversation. Someone has ' +
+        'written a rough account of something that happened to them and wants to ' +
+        'tell it well to friends. Make it vivid, natural and well-paced to say ' +
+        'out loud WITHOUT inventing facts. Respond ONLY with JSON matching the ' +
+        'requested schema.'
+      : 'You are an interview storytelling coach. A candidate has written a ' +
+        'rough, factual account of something that happened to them. Turn it into ' +
+        'an interview-ready story WITHOUT inventing facts. Respond ONLY with JSON ' +
+        'matching the requested schema.';
+
+  const schema =
+    mode === 'personal'
+      ? 'Return JSON: { ' +
+        '"title": a short memorable title (max ~6 words), ' +
+        '"storytelling": a vivid, casual, spoken-aloud version with a natural build and a satisfying ending, first person, paced for a real conversation (not a monologue), ' +
+        '"score": number 0-10 for how well this story would land when told to friends, ' +
+        '"questions": array of short questions about missing detail that would make it more vivid or funny (sensory detail, what someone said, how it felt) — empty if nothing is missing, ' +
+        '"triggers": array of 2-4 conversational cues when this story naturally comes up (e.g. "when talk turns to travel disasters", "when someone mentions a bad boss"), ' +
+        '"conversationHooks": array of 4-6 ways to keep the conversation going after telling it — a mix of questions to ask the other person, opinions you could share, and related OR unrelated threads to branch into }'
+      : 'Return JSON: { ' +
+        '"title": a short memorable title (max ~6 words), ' +
+        '"storytelling": a polished, spoken-aloud version with a clear arc (situation → tension → action → result), 4-8 sentences, first person, ' +
+        '"score": number 0-10 for how compelling and complete the story is as told, ' +
+        '"questions": array of short questions about concrete details that are missing (metrics, stakes, your specific role) — empty if nothing is missing, ' +
+        '"triggers": array of 2-4 interview prompts this story is a strong answer to (e.g. "Tell me about a time you led under pressure"), ' +
+        '"conversationHooks": [] }';
+
+  const user = [
+    input.category ? `CATEGORY: ${input.category}` : '',
+    "RAW STORY (the person's own notes — may contain guiding prompts they wrote against):",
+    input.rawStory,
+    schema,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${env.openai.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: env.openai.evalModel,
+      temperature: mode === 'personal' ? 0.7 : 0.5,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: sys },
+        { role: 'user', content: user },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Story analyzer failed (${res.status}): ${await res.text()}`);
+  }
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content ?? '{}';
+  let parsed: any;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error('Story analyzer returned malformed JSON');
+  }
+  return normalizeAnalysis(parsed, mode);
+}
+
+function normalizeAnalysis(raw: any, mode: StoryMode): StoryAnalysis {
+  const toLines = (v: any): string[] =>
+    Array.isArray(v)
+      ? v.map((x) => String(x).trim()).filter(Boolean)
+      : String(v ?? '')
+          .split('\n')
+          .map((s) => s.replace(/^[-•\d.\s]+/, '').trim())
+          .filter(Boolean);
+
+  return {
+    title: String(raw?.title ?? '').trim(),
+    storytelling: String(raw?.storytelling ?? '').trim(),
+    score: clampReviewScore(Number(raw?.score)),
+    questions: toLines(raw?.questions),
+    triggers: toLines(raw?.triggers),
+    conversationHooks: mode === 'personal' ? toLines(raw?.conversationHooks) : [],
+  };
 }
 
 function normalizeReview(raw: any): NoteReview {
@@ -386,44 +522,26 @@ function localReview(input: NoteReviewInput): NoteReview {
   let score = 3;
   let improved: string | null = null;
 
-  if (input.kind === 'question') {
-    const refWords = wordCount(input.reference);
-    if (!input.question || input.question.trim().length < 8) {
-      missing.push('The question is empty or too vague to practise against.');
-    }
-    if (refWords === 0) {
-      missing.push('No reference answer — the AI will have to improvise when you practise.');
-      questions.push('What are the 2–3 key points your ideal answer must hit?');
-      questions.push('Do you have a concrete example or metric that proves your point?');
-    } else {
-      score += refWords >= 60 ? 4 : refWords >= 30 ? 3 : 1;
-      if (refWords < 30) {
-        missing.push('The reference answer is thin — add specifics, numbers, and an outcome.');
-      }
-      if (!/\d/.test(input.reference ?? '')) {
-        missing.push('No quantified impact — add a metric that shows the result mattered.');
-      }
-    }
-    if (!input.category) missing.push('No category set — it helps target practice and exams.');
-    if (refWords > 0 && refWords < 30) {
-      improved = buildImprovedAnswer(input);
-    }
+  const refWords = wordCount(input.reference);
+  if (!input.question || input.question.trim().length < 8) {
+    missing.push('The question is empty or too vague to practise against.');
+  }
+  if (refWords === 0) {
+    missing.push('No reference answer — the AI will have to improvise when you practise.');
+    questions.push('What are the 2–3 key points your ideal answer must hit?');
+    questions.push('Do you have a concrete example or metric that proves your point?');
   } else {
-    const triggers = (input.triggers ?? []).filter((t) => t.trim());
-    if (triggers.length === 0) {
-      missing.push('No triggers — add the topics that should remind you to tell this story.');
+    score += refWords >= 60 ? 4 : refWords >= 30 ? 3 : 1;
+    if (refWords < 30) {
+      missing.push('The reference answer is thin — add specifics, numbers, and an outcome.');
     }
-    if (!input.hook?.trim()) {
-      missing.push('Missing a hook — one sharp opening line that earns attention.');
-    } else score += 2;
-    if (wordCount(input.narrative) < 20) {
-      missing.push('The narrative is too brief — sketch the situation, the tension, and what you did.');
-      questions.push('What was the obstacle, and what specific action did you take?');
-    } else score += 3;
-    if (!input.takeaway?.trim()) {
-      missing.push('No takeaway — end on the lesson or the result you want remembered.');
-      questions.push('What is the one thing the interviewer should remember afterwards?');
-    } else score += 2;
+    if (!/\d/.test(input.reference ?? '')) {
+      missing.push('No quantified impact — add a metric that shows the result mattered.');
+    }
+  }
+  if (!input.category) missing.push('No category set — it helps target practice and exams.');
+  if (refWords > 0 && refWords < 30) {
+    improved = buildImprovedAnswer(input);
   }
 
   score = clampReviewScore(score);
@@ -448,6 +566,80 @@ function localReview(input: NoteReviewInput): NoteReview {
     questions,
     improved,
   };
+}
+
+/**
+ * Deterministic story analysis for local-first mode (no AI key). Good enough to
+ * exercise the Analyze flow: it drafts a title/storytelling scaffold from the
+ * raw text and always asks for the specifics interviewers care about.
+ */
+function localAnalysis(input: StoryAnalysisInput): StoryAnalysis {
+  const mode: StoryMode = input.mode ?? 'interview';
+
+  // Drop any guiding prompts the user wrote against, then split into sentences.
+  const clean = input.rawStory
+    .split('\n')
+    .filter((line) => !line.trim().endsWith('?'))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const sentences = clean.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const words = clean.split(/\s+/).filter(Boolean);
+
+  const title =
+    (sentences[0] ?? 'Untitled story')
+      .replace(/[.!?]+$/, '')
+      .split(/\s+/)
+      .slice(0, 7)
+      .join(' ') || 'Untitled story';
+
+  const note =
+    mode === 'personal'
+      ? '(Add an OpenAI key for a tailored conversational rewrite.)'
+      : '(Add an OpenAI key for a tailored storytelling rewrite.)';
+  const storytelling = clean ? `${clean} ${note}` : '';
+
+  let score = 3;
+  if (words.length >= 40) score += 2;
+  else if (words.length >= 20) score += 1;
+  if (/\d/.test(clean)) score += 2; // a metric (interview) / a specific number (personal)
+  score = clampReviewScore(score);
+
+  if (mode === 'personal') {
+    const questions: string[] = [];
+    if (words.length < 40) {
+      questions.push('What could you see, hear, or feel in the moment — one vivid detail?');
+    }
+    questions.push('What is the funniest or most surprising beat, and how do you land the ending?');
+
+    const triggers = [
+      'When talk turns to things going wrong on a trip.',
+      'When someone shares an awkward or embarrassing moment.',
+    ];
+    const conversationHooks = [
+      'Ask them: has anything like that ever happened to you?',
+      'Share your take on why moments like that stick with us.',
+      'Branch to a related story — the last time a plan fell apart.',
+      'Pivot to an unrelated thread — what they have coming up next.',
+    ];
+    return { title, storytelling, score, questions, triggers, conversationHooks };
+  }
+
+  const questions: string[] = [];
+  if (!/\d/.test(clean)) {
+    questions.push('What was the measurable result — a number, %, or before/after?');
+  }
+  if (words.length < 40) {
+    questions.push('What was the obstacle, and what specific action did you personally take?');
+  }
+  questions.push('What did the interviewer learn about you from this — the takeaway?');
+
+  const triggers = [
+    'Tell me about a time you faced a challenge.',
+    'Describe a situation where you had to adapt.',
+  ];
+
+  return { title, storytelling, score, questions, triggers, conversationHooks: [] };
 }
 
 function buildImprovedAnswer(input: NoteReviewInput): string {

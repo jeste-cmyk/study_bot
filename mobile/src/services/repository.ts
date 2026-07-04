@@ -19,7 +19,7 @@ import type {
   Note,
   Question,
   SRState,
-  Story,
+  StoryMode,
   StoryTrigger,
 } from '@/domain/types';
 import { supabase } from './supabaseClient';
@@ -34,19 +34,81 @@ export interface Repository {
 }
 
 /**
+ * Migrate a story's content fields, upgrading legacy records (which stored
+ * `hook`/`narrative`/`takeaway`) to the free-text `title`/`rawStory`/
+ * `storytelling`/`score` shape. Nothing is lost: the three legacy sections are
+ * combined into the raw box, and the old labelled reference becomes the
+ * storytelling version.
+ */
+function migrateStoryContent(raw: any): {
+  mode: StoryMode;
+  title: string;
+  rawStory: string;
+  storytelling: string;
+  score: number | null;
+  conversationHooks: string[];
+} {
+  const mode: StoryMode = raw?.mode === 'personal' ? 'personal' : 'interview';
+  const conversationHooks = Array.isArray(raw?.conversationHooks)
+    ? raw.conversationHooks.map((h: unknown) => String(h)).filter(Boolean)
+    : [];
+  const isNew =
+    typeof raw?.rawStory === 'string' ||
+    typeof raw?.storytelling === 'string' ||
+    typeof raw?.title === 'string';
+  if (isNew) {
+    return {
+      mode,
+      title: String(raw.title ?? ''),
+      rawStory: String(raw.rawStory ?? ''),
+      storytelling: String(raw.storytelling ?? ''),
+      score: typeof raw.score === 'number' ? raw.score : null,
+      conversationHooks,
+    };
+  }
+  const hook = String(raw?.hook ?? '').trim();
+  const narrative = String(raw?.narrative ?? '').trim();
+  const takeaway = String(raw?.takeaway ?? '').trim();
+  const rawStory = [hook, narrative, takeaway].filter(Boolean).join('\n\n');
+  const storytelling = [
+    hook,
+    narrative,
+    takeaway ? `Takeaway: ${takeaway}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+  return { mode, title: hook, rawStory, storytelling, score: null, conversationHooks };
+}
+
+/**
  * Normalise notes loaded from storage so older records (saved before stories /
- * drafts existed) keep working without a migration.
+ * drafts / the free-text story rewrite existed) keep working without a
+ * migration.
  */
 function normalizeNote(raw: any): Note {
   if (raw?.kind === 'story') {
-    const story = raw as Story;
+    const { mode, title, rawStory, storytelling, score, conversationHooks } =
+      migrateStoryContent(raw);
     return {
-      ...story,
-      status: story.status ?? 'ready',
-      triggers: (story.triggers ?? []).map((t) => ({
+      id: raw.id,
+      userId: raw.userId,
+      kind: 'story',
+      status: raw.status ?? 'ready',
+      mode,
+      title,
+      rawStory,
+      storytelling,
+      score,
+      triggers: (raw.triggers ?? []).map((t: StoryTrigger) => ({
         ...t,
         attempts: (t.attempts ?? []).map((a) => ({ ...a, triggerId: a.triggerId ?? t.id })),
       })),
+      conversationHooks,
+      category: raw.category ?? null,
+      difficulty: raw.difficulty ?? null,
+      tags: raw.tags ?? [],
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
     };
   }
   const q = raw as Question;
@@ -113,10 +175,13 @@ class LocalRepository implements Repository {
 // ---------------------------------------------------------------------------
 
 type StoryPayload = {
-  hook: string;
-  narrative: string;
-  takeaway: string;
+  mode?: StoryMode;
+  title: string;
+  rawStory: string;
+  storytelling: string;
+  score: number | null;
   triggers: StoryTrigger[];
+  conversationHooks?: string[];
 };
 
 type NoteRow = {
@@ -183,13 +248,21 @@ const rowToNote = (r: NoteRow): Note => {
   };
 
   if (r.kind === 'story' && r.story) {
+    const { mode, title, rawStory, storytelling, score, conversationHooks } =
+      migrateStoryContent(r.story);
     return {
       ...base,
       kind: 'story',
-      hook: r.story.hook,
-      narrative: r.story.narrative,
-      takeaway: r.story.takeaway,
-      triggers: r.story.triggers ?? [],
+      mode,
+      title,
+      rawStory,
+      storytelling,
+      score,
+      triggers: (r.story.triggers ?? []).map((t) => ({
+        ...t,
+        attempts: (t.attempts ?? []).map((a) => ({ ...a, triggerId: a.triggerId ?? t.id })),
+      })),
+      conversationHooks,
     };
   }
 
@@ -213,7 +286,7 @@ const noteToRow = (n: Note): Omit<NoteRow, 'attempts'> => {
       user_id: n.userId,
       kind: 'story',
       status: n.status,
-      text: n.hook, // store the hook in `text` for search/preview
+      text: n.title, // store the title in `text` for search/preview
       reference: null,
       category: n.category,
       company: null,
@@ -221,10 +294,13 @@ const noteToRow = (n: Note): Omit<NoteRow, 'attempts'> => {
       tags: n.tags,
       sr: null,
       story: {
-        hook: n.hook,
-        narrative: n.narrative,
-        takeaway: n.takeaway,
+        mode: n.mode,
+        title: n.title,
+        rawStory: n.rawStory,
+        storytelling: n.storytelling,
+        score: n.score,
         triggers: n.triggers,
+        conversationHooks: n.conversationHooks,
       },
       created_at: n.createdAt,
       updated_at: n.updatedAt,
@@ -248,6 +324,20 @@ const noteToRow = (n: Note): Omit<NoteRow, 'attempts'> => {
   };
 };
 
+/**
+ * Supabase/PostgREST rejects with a plain `{ message, code, details, hint }`
+ * object, not an `Error`. Screens that surface `e instanceof Error ? e.message`
+ * would otherwise swallow it behind a generic message, so wrap it into a real
+ * Error that preserves the Postgres detail (e.g. a missing column after a
+ * skipped schema migration).
+ */
+function asError(error: { message?: string; details?: string; hint?: string; code?: string }): Error {
+  const parts = [error.message, error.details, error.hint].filter(Boolean);
+  const err = new Error(parts.join(' — ') || 'Supabase request failed');
+  if (error.code) (err as Error & { code?: string }).code = error.code;
+  return err;
+}
+
 class SupabaseRepository implements Repository {
   private get db() {
     if (!supabase) throw new Error('Supabase is not configured');
@@ -260,13 +350,13 @@ class SupabaseRepository implements Repository {
       .select('*, attempts(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    if (error) throw error;
+    if (error) throw asError(error);
     return (data as NoteRow[]).map(rowToNote);
   }
 
   async createNote(n: Note): Promise<void> {
     const { error } = await this.db.from('questions').insert(noteToRow(n));
-    if (error) throw error;
+    if (error) throw asError(error);
   }
 
   async updateNote(n: Note): Promise<void> {
@@ -274,12 +364,12 @@ class SupabaseRepository implements Repository {
       .from('questions')
       .update(noteToRow(n))
       .eq('id', n.id);
-    if (error) throw error;
+    if (error) throw asError(error);
   }
 
   async deleteNote(_userId: string, id: string): Promise<void> {
     const { error } = await this.db.from('questions').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw asError(error);
   }
 
   async addAttempt(attempt: Attempt, sr: SRState): Promise<void> {
@@ -298,13 +388,13 @@ class SupabaseRepository implements Repository {
       rating: attempt.rating,
       created_at: attempt.createdAt,
     });
-    if (error) throw error;
+    if (error) throw asError(error);
     // Persist the recomputed SR state onto the question row.
     const { error: uErr } = await this.db
       .from('questions')
       .update({ sr, updated_at: new Date().toISOString() })
       .eq('id', attempt.questionId);
-    if (uErr) throw uErr;
+    if (uErr) throw asError(uErr);
   }
 }
 
