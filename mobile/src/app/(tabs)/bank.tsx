@@ -4,10 +4,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { categoryStyle, colors, fonts, radius, scoreColor, statusStyle } from '@/theme';
-import { Pill, Tag, Txt } from '@/ui/primitives';
+import { Highlighted, Pill, Tag, Txt } from '@/ui/primitives';
 import { PlusIcon, SearchIcon } from '@/ui/icons';
 import { useStore } from '@/store/useStore';
 import { dueCount } from '@/domain/selection';
+import { matchNote, type SearchHit } from '@/domain/search';
 import { isStory, lastScore, noteReviewStatus, noteTitle } from '@/domain/types';
 
 const FILTERS: Array<{ key: string; label: string }> = [
@@ -36,17 +37,15 @@ export default function BankScreen() {
   };
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return notes.filter((item) => {
-      if (hideDrafts && item.status === 'draft') return false;
-      if (active.length > 0 && (!item.category || !active.includes(item.category))) return false;
-      if (q) {
-        const company = isStory(item) ? '' : item.company ?? '';
-        if (!noteTitle(item).toLowerCase().includes(q) && !company.toLowerCase().includes(q))
-          return false;
-      }
-      return true;
-    });
+    const out: { note: (typeof notes)[number]; titleSpans: SearchHit['spans']; hit: SearchHit | null }[] = [];
+    for (const item of notes) {
+      if (hideDrafts && item.status === 'draft') continue;
+      if (active.length > 0 && (!item.category || !active.includes(item.category))) continue;
+      const m = matchNote(item, query);
+      if (!m.matched) continue;
+      out.push({ note: item, titleSpans: m.titleSpans, hit: m.hit });
+    }
+    return out;
   }, [notes, query, active, hideDrafts]);
 
   const due = dueCount(notes);
@@ -126,7 +125,7 @@ export default function BankScreen() {
             No notes match.
           </Txt>
         ) : (
-          filtered.map((n) => {
+          filtered.map(({ note: n, titleSpans, hit }) => {
             const c = categoryStyle(n.category);
             const st = statusStyle(noteReviewStatus(n));
             const score = lastScore(n);
@@ -142,9 +141,28 @@ export default function BankScreen() {
                     {n.status === 'draft' ? <Tag label="Draft" bg="#EFEDE8" fg="#8A867C" /> : null}
                   </View>
                 ) : null}
-                <Txt variant="bodyStrong" style={{ color: colors.text, lineHeight: 19, marginBottom: 10 }}>
-                  {noteTitle(n)}
-                </Txt>
+                <Highlighted
+                  variant="bodyStrong"
+                  text={noteTitle(n)}
+                  spans={titleSpans}
+                  highlightStyle={styles.mark}
+                  style={{ color: colors.text, lineHeight: 19, marginBottom: hit ? 6 : 10 }}
+                />
+                {hit ? (
+                  <View style={styles.hitRow}>
+                    <Txt variant="label" style={{ color: colors.faint }}>
+                      {hit.field.toUpperCase()}
+                    </Txt>
+                    <Highlighted
+                      variant="small"
+                      text={hit.snippet}
+                      spans={hit.spans}
+                      highlightStyle={styles.mark}
+                      numberOfLines={2}
+                      style={{ flex: 1, color: colors.muted }}
+                    />
+                  </View>
+                ) : null}
                 <View style={styles.metaRow}>
                   <Pill label={n.category ?? 'General'} bg={c.bg} fg={c.fg} />
                   {story ? (
@@ -211,6 +229,8 @@ const styles = StyleSheet.create({
   draftCard: { borderStyle: 'dashed', backgroundColor: colors.surfaceAlt },
   titleRow: { flexDirection: 'row', gap: 6, marginBottom: 8 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  hitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 7, marginBottom: 10 },
+  mark: { backgroundColor: colors.accentTint, color: colors.accentInk },
   fab: {
     position: 'absolute',
     right: 20,

@@ -56,6 +56,7 @@ export interface Question {
   company: string | null;
   difficulty: Difficulty | null;
   tags: string[];
+  photos: string[]; // attached image URIs (persisted in the app's document dir)
   createdAt: string;
   updatedAt: string;
   sr: SRState;
@@ -63,9 +64,13 @@ export interface Question {
 }
 
 /**
- * A story is practised one trigger at a time, so each trigger owns its own SR
- * state and attempt history. The hook + narrative + takeaway form the shared
- * reference answer all triggers are graded against.
+ * A story trigger — a prompt/cue this story answers.
+ *
+ * In **interview** mode each trigger is drilled separately, so it owns its own
+ * SR state and attempt history. In **personal** mode the whole story is
+ * practised as one unit (prompted by its title), so a personal story's triggers
+ * are just recall cues — their `sr`/`attempts` are unused and the schedule lives
+ * on the story itself.
  */
 export interface StoryTrigger {
   id: string;
@@ -91,7 +96,11 @@ export interface Story {
   storytelling: string;
   /** AI-assigned readiness score (0–10), editable. `null` until analyzed. */
   score: number | null;
-  /** AI-generated prompts; each is drilled separately with its own SR state. */
+  /**
+   * The prompts this story answers. Interview mode drills each separately (each
+   * carries its own SR); personal mode uses them as recall cues for *when* to
+   * tell the story.
+   */
   triggers: StoryTrigger[];
   /**
    * Personal mode only: ways to keep the conversation going after telling the
@@ -99,14 +108,27 @@ export interface Story {
    * Empty for interview stories.
    */
   conversationHooks: string[];
+  /**
+   * Story-level spaced-repetition state. Only used in **personal** mode, where
+   * the whole story is practised as one card (prompted by its title, graded on
+   * delivery). Interview stories schedule per trigger and leave this at its
+   * initial value.
+   */
+  sr: SRState;
+  /** Story-level delivery attempts (personal mode). Most-recent first. */
+  attempts: Attempt[];
   category: Category | null;
   difficulty: Difficulty | null;
   tags: string[];
+  photos: string[]; // attached image URIs (persisted in the app's document dir)
   createdAt: string;
   updatedAt: string;
 }
 
 export type Note = Question | Story;
+
+/** Attached image URIs for any note kind (empty when none). */
+export const notePhotos = (n: Note): string[] => n.photos ?? [];
 
 export const isQuestion = (n: Note): n is Question => n.kind === 'question';
 export const isStory = (n: Note): n is Story => n.kind === 'story';
@@ -128,12 +150,15 @@ export function noteTitle(n: Note): string {
   return n.text;
 }
 
-/** All attempts for a note, most-recent first (stories pool across triggers). */
+/**
+ * All attempts for a note, most-recent first. Personal stories keep a single
+ * story-level attempt log (one card per story); interview stories pool their
+ * attempts across triggers.
+ */
 export function noteAttempts(n: Note): Attempt[] {
   if (isStory(n)) {
-    return n.triggers
-      .flatMap((t) => t.attempts)
-      .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+    const pool = n.mode === 'personal' ? n.attempts : n.triggers.flatMap((t) => t.attempts);
+    return [...pool].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
   }
   return n.attempts;
 }
@@ -160,9 +185,13 @@ export function reviewStatus(
   return 'scheduled';
 }
 
-/** Note-level status: for stories, aggregate the most-urgent trigger. */
+/**
+ * Note-level status. Questions and personal stories map their own SR directly;
+ * interview stories aggregate the most-urgent trigger.
+ */
 export function noteReviewStatus(n: Note, now = new Date()): ReviewStatus {
   if (isQuestion(n)) return reviewStatus(n, now);
+  if (n.mode === 'personal') return reviewStatus(n, now);
   if (n.triggers.length === 0) return 'new';
   const statuses = n.triggers.map((t) => reviewStatus(t, now));
   if (statuses.includes('due')) return 'due';

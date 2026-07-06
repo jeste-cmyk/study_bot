@@ -22,8 +22,9 @@ import type {
   StoryMode,
   StoryTrigger,
 } from '@/domain/types';
-import { isStory } from '@/domain/types';
+import { isStory, notePhotos } from '@/domain/types';
 import { initialSR, schedule } from '@/domain/spacedRepetition';
+import { photoStore } from '@/services/photos';
 
 export interface NewQuestionInput {
   kind: 'question';
@@ -34,6 +35,7 @@ export interface NewQuestionInput {
   company?: string | null;
   difficulty?: Difficulty | null;
   tags?: string[];
+  photos?: string[];
 }
 
 export interface NewStoryInput {
@@ -49,6 +51,7 @@ export interface NewStoryInput {
   category?: Category | null;
   difficulty?: Difficulty | null;
   tags?: string[];
+  photos?: string[];
 }
 
 export type NewNoteInput = NewQuestionInput | NewStoryInput;
@@ -61,6 +64,7 @@ export interface UpdateQuestionPatch {
   difficulty?: Difficulty | null;
   status?: NoteStatus;
   tags?: string[];
+  photos?: string[];
 }
 
 export interface UpdateStoryPatch {
@@ -75,6 +79,7 @@ export interface UpdateStoryPatch {
   difficulty?: Difficulty | null;
   status?: NoteStatus;
   tags?: string[];
+  photos?: string[];
 }
 
 export type UpdateNotePatch = UpdateQuestionPatch | UpdateStoryPatch;
@@ -193,9 +198,12 @@ export const useStore = create<StoreState>((set, get) => ({
         conversationHooks: (input.conversationHooks ?? [])
           .map((h) => h.trim())
           .filter(Boolean),
+        sr: initialSR(now),
+        attempts: [],
         category: input.category ?? null,
         difficulty: input.difficulty ?? null,
         tags: input.tags ?? [],
+        photos: input.photos ?? [],
         createdAt: iso,
         updatedAt: iso,
       };
@@ -211,6 +219,7 @@ export const useStore = create<StoreState>((set, get) => ({
         company: trimOrNull(input.company),
         difficulty: input.difficulty ?? null,
         tags: input.tags ?? [],
+        photos: input.photos ?? [],
         createdAt: iso,
         updatedAt: iso,
         sr: initialSR(now),
@@ -262,6 +271,7 @@ export const useStore = create<StoreState>((set, get) => ({
         difficulty: p.difficulty !== undefined ? p.difficulty : note.difficulty,
         status: p.status ?? note.status,
         tags: p.tags ?? note.tags,
+        photos: p.photos ?? note.photos,
         updatedAt: now,
       };
     } else {
@@ -276,6 +286,7 @@ export const useStore = create<StoreState>((set, get) => ({
         difficulty: p.difficulty !== undefined ? p.difficulty : note.difficulty,
         status: p.status ?? note.status,
         tags: p.tags ?? note.tags,
+        photos: p.photos ?? note.photos,
         updatedAt: now,
       };
     }
@@ -287,7 +298,10 @@ export const useStore = create<StoreState>((set, get) => ({
   async deleteNote(id) {
     const user = get().user;
     if (!user) return;
+    const note = get().getNote(id);
     set({ notes: get().notes.filter((x) => x.id !== id) });
+    // Reclaim the note's attached photos now that nothing references them.
+    if (note) void Promise.all(notePhotos(note).map((ref) => photoStore.remove(ref)));
     await repository.deleteNote(user.id, id);
   },
 
@@ -314,16 +328,29 @@ export const useStore = create<StoreState>((set, get) => ({
     };
 
     if (isStory(note)) {
-      const triggers = note.triggers.map((t) =>
-        t.id === triggerId
+      // Personal stories are practised as one card → schedule at the story level.
+      // Interview stories still drill one trigger at a time.
+      const updated: Story =
+        note.mode === 'personal'
           ? {
-              ...t,
-              sr: schedule(t.sr, input.rating, now),
-              attempts: [attempt, ...t.attempts],
+              ...note,
+              sr: schedule(note.sr, input.rating, now),
+              attempts: [attempt, ...note.attempts],
+              updatedAt: now.toISOString(),
             }
-          : t,
-      );
-      const updated: Story = { ...note, triggers, updatedAt: now.toISOString() };
+          : {
+              ...note,
+              triggers: note.triggers.map((t) =>
+                t.id === triggerId
+                  ? {
+                      ...t,
+                      sr: schedule(t.sr, input.rating, now),
+                      attempts: [attempt, ...t.attempts],
+                    }
+                  : t,
+              ),
+              updatedAt: now.toISOString(),
+            };
       set({ notes: get().notes.map((x) => (x.id === noteId ? updated : x)) });
       // Story attempts/SR live inside the note → a single note write persists them.
       await repository.updateNote(updated);

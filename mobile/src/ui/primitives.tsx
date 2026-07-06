@@ -57,6 +57,51 @@ export function Txt({ variant = 'body', color, style, ...rest }: TxtProps) {
   return <Text {...rest} style={[TXT[variant], color ? { color } : null, style]} />;
 }
 
+/**
+ * Renders `text` with the given char ranges wrapped in `highlightStyle` — used
+ * to mark search matches in titles and quick-view snippets. Overlapping or
+ * out-of-order spans are merged safely.
+ */
+export function Highlighted({
+  text,
+  spans,
+  variant,
+  style,
+  highlightStyle,
+  numberOfLines,
+}: {
+  text: string;
+  spans: { start: number; end: number }[];
+  variant?: TxtVariant;
+  style?: StyleProp<TextStyle>;
+  highlightStyle?: StyleProp<TextStyle>;
+  numberOfLines?: number;
+}) {
+  const parts: ReactNode[] = [];
+  const sorted = [...spans].sort((a, b) => a.start - b.start);
+  let cursor = 0;
+  sorted.forEach((s, i) => {
+    const start = Math.max(cursor, s.start);
+    const end = Math.max(start, Math.min(s.end, text.length));
+    if (start > cursor) parts.push(<Text key={`p${i}`}>{text.slice(cursor, start)}</Text>);
+    if (end > start) {
+      parts.push(
+        <Text key={`h${i}`} style={highlightStyle}>
+          {text.slice(start, end)}
+        </Text>,
+      );
+    }
+    cursor = Math.max(cursor, end);
+  });
+  if (cursor < text.length) parts.push(<Text key="tail">{text.slice(cursor)}</Text>);
+
+  return (
+    <Txt variant={variant} style={style} numberOfLines={numberOfLines}>
+      {parts.length ? parts : text}
+    </Txt>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Pill / chip
 // ---------------------------------------------------------------------------

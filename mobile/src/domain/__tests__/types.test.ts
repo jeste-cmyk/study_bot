@@ -57,6 +57,17 @@ describe('noteAttempts', () => {
     });
     expect(noteAttempts(story).map((a) => a.id)).toEqual([recent.id, mid.id, old.id]);
   });
+
+  it('uses the story-level log for a personal story, ignoring trigger attempts', () => {
+    const older = makeAttempt({ createdAt: '2026-02-01T00:00:00.000Z' });
+    const newer = makeAttempt({ createdAt: '2026-05-01T00:00:00.000Z' });
+    const story = makeStory({
+      mode: 'personal',
+      attempts: [newer, older],
+      triggers: [makeTrigger({ attempts: [makeAttempt()] })],
+    });
+    expect(noteAttempts(story).map((a) => a.id)).toEqual([newer.id, older.id]);
+  });
 });
 
 describe('practiceMode', () => {
@@ -149,6 +160,16 @@ describe('noteReviewStatus', () => {
       ),
     ).toBe('scheduled');
     expect(noteReviewStatus(makeStory({ triggers: [] }), NOW)).toBe('new');
+  });
+
+  it('a personal story maps its own schedule, ignoring trigger SR', () => {
+    const story = makeStory({
+      mode: 'personal',
+      sr: makeSR({ reps: 2, dueAt: new Date(NOW.getTime() - DAY).toISOString() }),
+      attempts: [makeAttempt()],
+      triggers: [makeTrigger()], // brand-new trigger would read "new" under interview logic
+    });
+    expect(noteReviewStatus(story, NOW)).toBe('due');
   });
 });
 

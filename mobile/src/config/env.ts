@@ -21,6 +21,9 @@ export const env = {
       str(process.env.EXPO_PUBLIC_OPENAI_TRANSCRIBE_MODEL) || 'whisper-1',
   },
   aiProxyUrl: str(process.env.EXPO_PUBLIC_AI_PROXY_URL),
+  // Base URL of the API Gateway that mints presigned S3 URLs for note photos.
+  // When empty, photos are stored on-device (local-first fallback).
+  photoApiUrl: str(process.env.EXPO_PUBLIC_PHOTO_API_URL),
 } as const;
 
 /** Supabase auth + sync are available. Otherwise we run local-first. */
@@ -28,3 +31,6 @@ export const isSupabaseConfigured = Boolean(env.supabase.url && env.supabase.ano
 
 /** A real AI backend is reachable (either OpenAI directly or via a proxy). */
 export const isAiConfigured = Boolean(env.openai.apiKey || env.aiProxyUrl);
+
+/** Photos are stored in S3 via the signing API. Otherwise they stay on-device. */
+export const isS3PhotosConfigured = Boolean(env.photoApiUrl);

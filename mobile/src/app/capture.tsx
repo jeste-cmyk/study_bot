@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { CATEGORIES, categoryStyle, colors, fonts, radius, scoreColor } from '@/theme';
 import { Button, Txt } from '@/ui/primitives';
 import { CloseIcon, SparkleIcon } from '@/ui/icons';
+import { PhotoInput, PhotosLabel } from '@/ui/photos';
 import { useStore } from '@/store/useStore';
 import type { Category, Difficulty, NoteKind, StoryMode } from '@/domain/types';
 import { STORY_TEMPLATE } from '@/domain/story';
@@ -43,6 +44,7 @@ export default function CaptureScreen() {
   // Shared metadata
   const [category, setCategory] = useState<Category | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   // Question fields
   const [text, setText] = useState('');
@@ -110,6 +112,7 @@ export default function CaptureScreen() {
     setScore(null);
     setStoryTriggers([{ text: '' }]);
     setConversationHooks([]);
+    setPhotos([]);
     setReview(null);
     setReviewError(null);
   };
@@ -128,6 +131,7 @@ export default function CaptureScreen() {
           category,
           company: null,
           difficulty,
+          photos,
         });
       } else {
         await addNote({
@@ -142,6 +146,7 @@ export default function CaptureScreen() {
           conversationHooks,
           category,
           difficulty,
+          photos,
         });
       }
       if (addAnother) {
@@ -238,6 +243,14 @@ export default function CaptureScreen() {
               autoFocusRaw
             />
           )}
+
+          {/* Photos */}
+          <PhotosLabel style={styles.label} />
+          <Txt variant="small" style={{ marginBottom: 10, lineHeight: 18 }}>
+            Attach reference images — a whiteboard, a diagram, a screenshot. Tap “Add” to pick
+            several at once.
+          </Txt>
+          <PhotoInput photos={photos} onChange={setPhotos} />
 
           {/* Category */}
           <Txt variant="label" style={styles.label}>

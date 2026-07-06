@@ -24,17 +24,19 @@ create table if not exists public.questions (
   company     text,
   difficulty  text,
   tags        text[] not null default '{}',
+  photos      text[] not null default '{}', -- attached image URIs (any note kind)
   sr          jsonb,         -- null for story notes
   story       jsonb,         -- null for question notes
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
 
--- Migrate an existing table created before stories / drafts existed.
+-- Migrate an existing table created before stories / drafts / photos existed.
 alter table public.questions
   add column if not exists kind   text not null default 'question',
   add column if not exists status text not null default 'ready',
-  add column if not exists story  jsonb;
+  add column if not exists story  jsonb,
+  add column if not exists photos text[] not null default '{}';
 alter table public.questions alter column text drop not null;
 alter table public.questions alter column sr   drop not null;
 

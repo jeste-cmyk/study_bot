@@ -285,7 +285,7 @@ export function StoryEditor(props: StoryEditorProps) {
       </Txt>
       <Txt variant="small" style={{ marginBottom: 8, lineHeight: 18 }}>
         {personal
-          ? 'Moments in a conversation when this story naturally comes up. The AI suggests these; you practise each one separately.'
+          ? 'Moments in a conversation when this story naturally comes up. The AI suggests these; after you tell the story in practice, you’ll recall them from memory.'
           : 'Interview prompts this story answers. The AI suggests these; you practise each one separately.'}
       </Txt>
       {triggers.map((t, i) => (

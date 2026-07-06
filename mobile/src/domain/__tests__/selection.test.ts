@@ -36,6 +36,26 @@ describe('toPracticeItems', () => {
     }
   });
 
+  it('collapses a personal story into one title-prompted delivery card with recall cues', () => {
+    const story = makeStory({
+      mode: 'personal',
+      title: 'The overnight bus',
+      triggers: [makeTrigger({ text: 'travel disasters' }), makeTrigger({ text: 'getting lost' })],
+      conversationHooks: ['ask them about being lost'],
+    });
+    const items = toPracticeItems([story]);
+    expect(items).toHaveLength(1);
+    const [item] = items;
+    expect(item.key).toBe(story.id);
+    expect(item.triggerId).toBeNull();
+    expect(item.prompt).toBe('The overnight bus');
+    expect(item.reference).toBe(story.storytelling);
+    expect(item.storyMode).toBe('personal');
+    expect(item.recallTriggers).toEqual(['travel disasters', 'getting lost']);
+    expect(item.conversationHooks).toEqual(['ask them about being lost']);
+    expect(item.sr).toBe(story.sr);
+  });
+
   it('maps a question to a single item keyed by the note id', () => {
     const q = makeQuestion({ reference: 'ref', company: 'Revolut' });
     const [item] = toPracticeItems([q]);

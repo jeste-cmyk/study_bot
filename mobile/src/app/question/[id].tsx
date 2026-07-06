@@ -37,6 +37,7 @@ import {
   type StoryMode,
 } from '@/domain/types';
 import { StoryEditor, type EditableTrigger } from '@/features/story/StoryEditor';
+import { PhotoGallery, PhotoInput, PhotosLabel } from '@/ui/photos';
 import { formatInterval } from '@/domain/spacedRepetition';
 
 const DIFFICULTIES: Difficulty[] = ['Easy', 'Medium', 'Hard'];
@@ -68,6 +69,7 @@ export default function NoteDetail() {
   // Shared
   const [category, setCategory] = useState<Category | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   const sparks = useMemo(() => {
     if (!note) return [];
@@ -95,6 +97,7 @@ export default function NoteDetail() {
     setText(note.text);
     setReference(note.reference ?? '');
     setCompany(note.company ?? '');
+    setPhotos(note.photos);
     setEditing(true);
   };
 
@@ -106,6 +109,7 @@ export default function NoteDetail() {
       category,
       company: company.trim() || null,
       difficulty,
+      photos,
     });
     setEditing(false);
   };
@@ -160,6 +164,8 @@ export default function NoteDetail() {
             setCategory={setCategory}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
+            photos={photos}
+            setPhotos={setPhotos}
             onSave={saveEdit}
           />
         ) : (
@@ -208,6 +214,12 @@ function QuestionView({ note, sparks }: { note: Question; sparks: number[] }) {
       <Txt variant="h3" style={{ lineHeight: 25, marginBottom: 16 }}>
         {note.text}
       </Txt>
+
+      {note.photos.length > 0 ? (
+        <View style={{ marginBottom: 16 }}>
+          <PhotoGallery photos={note.photos} />
+        </View>
+      ) : null}
 
       <Card style={{ marginBottom: 12 }}>
         <Txt variant="label" style={{ marginBottom: 8 }}>
@@ -271,8 +283,13 @@ function QuestionView({ note, sparks }: { note: Question; sparks: number[] }) {
 // Story — detail (full authoring editor)
 // ---------------------------------------------------------------------------
 
-/** Read-only spaced-repetition schedule for a saved story's triggers. */
+/**
+ * Read-only schedule for a saved story. Personal stories are one card (one
+ * schedule) with their triggers shown as recall cues; interview stories keep a
+ * per-trigger schedule.
+ */
 function TriggerSchedule({ note }: { note: Story }) {
+  if (note.mode === 'personal') return <PersonalStorySchedule note={note} />;
   return (
     <Card style={{ marginTop: 8, marginBottom: 14 }}>
       <Txt variant="label" style={{ marginBottom: 10 }}>
@@ -310,6 +327,69 @@ function TriggerSchedule({ note }: { note: Story }) {
   );
 }
 
+/** Story-level schedule for a personal story, with its triggers + directions as cues. */
+function PersonalStorySchedule({ note }: { note: Story }) {
+  const review = nextReviewLabel(note.sr.dueAt);
+  const last = note.attempts[0]?.aiScore ?? null;
+  return (
+    <Card style={{ marginTop: 8, marginBottom: 14 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <Txt variant="label">DELIVERY SCHEDULE</Txt>
+        <Txt
+          variant="mono"
+          style={{ fontFamily: fonts.monoSemibold, color: scoreColor(last) }}>
+          {last != null ? `${last}/10` : '—'}
+        </Txt>
+      </View>
+      <View style={styles.srTop}>
+        <Txt variant="body" style={{ color: colors.textSecondary }}>
+          Next review
+        </Txt>
+        <Txt variant="bodyStrong" style={{ color: review.color, fontFamily: fonts.bold }}>
+          {review.text}
+        </Txt>
+      </View>
+      <View style={styles.srStats}>
+        <Stat value={String(note.sr.reps)} label="reps" />
+        <Stat value={formatInterval(note.sr.intervalDays)} label="interval" />
+        <Stat value={String(note.attempts.length)} label="tellings" />
+      </View>
+
+      {note.triggers.length > 0 ? (
+        <View style={{ marginTop: 16 }}>
+          <Txt variant="label" style={{ marginBottom: 8 }}>
+            TRIGGERS · WHEN TO TELL IT
+          </Txt>
+          {note.triggers.map((t) => (
+            <View key={t.id} style={styles.cueRow}>
+              <View style={[styles.cueDot, { backgroundColor: '#6A3FB0' }]} />
+              <Txt variant="body" style={{ flex: 1, color: colors.text }}>
+                {t.text}
+              </Txt>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      {note.conversationHooks.length > 0 ? (
+        <View style={{ marginTop: 14 }}>
+          <Txt variant="label" style={{ marginBottom: 8 }}>
+            DIRECTIONS · KEEP IT GOING
+          </Txt>
+          {note.conversationHooks.map((h, i) => (
+            <View key={i} style={styles.cueRow}>
+              <View style={[styles.cueDot, { backgroundColor: colors.accent }]} />
+              <Txt variant="body" style={{ flex: 1, color: colors.text }}>
+                {h}
+              </Txt>
+            </View>
+          ))}
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
 function StoryDetail({ note }: { note: Story }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -329,6 +409,7 @@ function StoryDetail({ note }: { note: Story }) {
   const [conversationHooks, setConversationHooks] = useState<string[]>(note.conversationHooks);
   const [category, setCategory] = useState<Category | null>(note.category);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(note.difficulty);
+  const [photos, setPhotos] = useState<string[]>(note.photos);
   const [busy, setBusy] = useState(false);
 
   const c = categoryStyle(note.category);
@@ -346,6 +427,7 @@ function StoryDetail({ note }: { note: Story }) {
         conversationHooks,
         category,
         difficulty,
+        photos,
       });
       // Re-sync so newly-added triggers pick up their persisted ids and a second
       // save doesn't duplicate them.
@@ -413,6 +495,9 @@ function StoryDetail({ note }: { note: Story }) {
             setConversationHooks={setConversationHooks}
             category={category}
           />
+
+          <PhotosLabel style={styles.editLabel} />
+          <PhotoInput photos={photos} onChange={setPhotos} />
 
           <CategoryPicker category={category} setCategory={setCategory} />
           <Txt variant="label" style={styles.editLabel}>
@@ -554,6 +639,8 @@ function QuestionEdit({
   setCategory,
   difficulty,
   setDifficulty,
+  photos,
+  setPhotos,
   onSave,
 }: {
   text: string;
@@ -566,6 +653,8 @@ function QuestionEdit({
   setCategory: (c: Category | null) => void;
   difficulty: Difficulty | null;
   setDifficulty: (d: Difficulty | null) => void;
+  photos: string[];
+  setPhotos: (p: string[]) => void;
   onSave: () => void;
 }) {
   return (
@@ -591,6 +680,9 @@ function QuestionEdit({
         placeholderTextColor={colors.faint}
         style={[styles.input, { minHeight: 90 }]}
       />
+
+      <PhotosLabel style={styles.editLabel} />
+      <PhotoInput photos={photos} onChange={setPhotos} />
 
       <CategoryPicker category={category} setCategory={setCategory} />
 
@@ -659,6 +751,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   attemptDivider: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+  cueRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, paddingVertical: 4 },
+  cueDot: { width: 6, height: 6, borderRadius: 3, marginTop: 7 },
   editLabel: { marginTop: 16, marginBottom: 8, letterSpacing: 0.4 },
   input: {
     borderWidth: 1,

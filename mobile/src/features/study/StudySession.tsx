@@ -46,7 +46,44 @@ import { practiceMode, type AnswerMode } from '@/domain/types';
 import { previewIntervals } from '@/domain/spacedRepetition';
 import { evaluateAnswer, transcribeAudio, type Evaluation } from '@/services/ai';
 
-type Step = 'answer' | 'evaluating' | 'feedback';
+/**
+ * The practice flow. Questions and interview stories run answer → evaluating →
+ * feedback. Personal stories add a second act after delivery feedback: recall →
+ * recallEvaluating → recallFeedback, quizzing you on *when* to tell the story
+ * and *where* to take the conversation, then a single self-rating.
+ */
+type Step =
+  | 'answer'
+  | 'evaluating'
+  | 'feedback'
+  | 'recall'
+  | 'recallEvaluating'
+  | 'recallFeedback';
+
+/** The prompt shown for a personal story's recall step. */
+const RECALL_QUESTION =
+  'When would you bring this story up — and where could you take the conversation from here?';
+
+/** A snapshot of the delivery answer, kept while the recall step reuses the input. */
+interface DeliverySnapshot {
+  inputMode: AnswerMode;
+  answerText: string;
+  transcript: string | null;
+  audioUri: string | null;
+  evaluation: Evaluation | null;
+}
+
+/** Pack a personal story's saved cues into a reference the recall grader checks against. */
+function formatRecallReference(triggers: string[], hooks: string[]): string {
+  const block = (label: string, items: string[]) =>
+    items.length ? `${label}:\n${items.map((i) => `- ${i}`).join('\n')}` : '';
+  return [
+    block('Triggers (when to tell it)', triggers),
+    block('Directions (where to take the conversation)', hooks),
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+}
 
 const CATEGORY_CHIPS: Array<{ key: string; label: string }> = [
   { key: 'all', label: 'All' },
@@ -93,6 +130,8 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
   const [transcript, setTranscript] = useState<string | null>(null);
   const [audioUri, setAudioUri] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  const [recallEvaluation, setRecallEvaluation] = useState<Evaluation | null>(null);
+  const [delivery, setDelivery] = useState<DeliverySnapshot | null>(null);
   const [saveRef, setSaveRef] = useState(false);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -103,6 +142,16 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
 
   const current = queue[index];
   const mode = current ? practiceMode(current) : 'A';
+
+  // Personal stories: told from the title, graded on delivery, then quizzed on
+  // their triggers + conversation directions.
+  const isPersonalStory =
+    !!current && current.kind === 'story' && current.storyMode === 'personal';
+  const recallTriggers = (current?.recallTriggers ?? []).filter((t) => t.trim());
+  const recallHooks = (current?.conversationHooks ?? []).filter((h) => h.trim());
+  const hasRecall = isPersonalStory && recallTriggers.length + recallHooks.length > 0;
+  const inRecall =
+    step === 'recall' || step === 'recallEvaluating' || step === 'recallFeedback';
 
   // Ask for mic permission up front; fall back to text if denied / web.
   useEffect(() => {
@@ -130,6 +179,8 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
     setTranscript(null);
     setAudioUri(null);
     setEvaluation(null);
+    setRecallEvaluation(null);
+    setDelivery(null);
     setSaveRef(false);
     setRecording(false);
     setElapsed(0);
@@ -190,8 +241,27 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
   };
 
   // ---- submit + evaluate ---------------------------------------------------
-  const runEvaluation = async (finalAnswer: string) => {
+  /** Grade one phase's answer. `delivery` covers questions, interview + personal
+   *  stories; `recall` covers a personal story's triggers/directions quiz. */
+  const evaluatePhase = async (phase: 'delivery' | 'recall', finalAnswer: string) => {
     if (!current) return;
+    if (phase === 'recall') {
+      setStep('recallEvaluating');
+      try {
+        const result = await evaluateAnswer({
+          question: current.prompt,
+          reference: formatRecallReference(recallTriggers, recallHooks),
+          answer: finalAnswer,
+          focus: 'recall',
+        });
+        setRecallEvaluation(result);
+        setStep('recallFeedback');
+      } catch (e: any) {
+        setError(e?.message ?? 'Evaluation failed');
+        setStep('recall');
+      }
+      return;
+    }
     setStep('evaluating');
     try {
       const result = await evaluateAnswer({
@@ -200,6 +270,7 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
         answer: finalAnswer,
         category: current.category,
         company: current.company,
+        focus: isPersonalStory ? 'delivery' : undefined,
       });
       setEvaluation(result);
       setStep('feedback');
@@ -210,30 +281,93 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
   };
 
   const submit = async () => {
+    const phase: 'delivery' | 'recall' = step === 'recall' ? 'recall' : 'delivery';
     if (inputMode === 'voice') {
       const uri = await stopRecording();
       setAudioUri(uri);
-      setStep('evaluating');
+      setStep(phase === 'recall' ? 'recallEvaluating' : 'evaluating');
       try {
         const text = uri ? await transcribeAudio(uri) : '';
         setTranscript(text);
         setAnswerText(text);
-        await runEvaluation(text);
+        await evaluatePhase(phase, text);
       } catch (e: any) {
         setError(e?.message ?? 'Transcription failed');
-        setStep('answer');
+        setStep(phase === 'recall' ? 'recall' : 'answer');
       }
     } else {
       if (answerText.trim().length === 0) {
         setError('Type an answer first, or switch to voice.');
         return;
       }
-      await runEvaluation(answerText.trim());
+      await evaluatePhase(phase, answerText.trim());
     }
   };
 
+  /** Delivery feedback → recall step: snapshot the told story, reset the input. */
+  const startRecall = () => {
+    setDelivery({
+      inputMode,
+      answerText,
+      transcript: inputMode === 'voice' ? transcript : null,
+      audioUri,
+      evaluation,
+    });
+    setAnswerText('');
+    setTranscript(null);
+    setAudioUri(null);
+    setRecording(false);
+    setElapsed(0);
+    setInputMode(voiceAvailable ? 'voice' : 'text');
+    setError(null);
+    setStep('recall');
+  };
+
+  /** Skip the recall quiz but still reveal the saved cues and let the user rate.
+   *  `delivery` was already snapshotted on entering the recall step. */
+  const skipRecall = () => {
+    setRecallEvaluation(null);
+    setStep('recallFeedback');
+  };
+
   const rate = async (rating: RatingKey) => {
-    if (!evaluation || !current) return;
+    if (!current) return;
+
+    if (isPersonalStory) {
+      // The self-rating sets the one schedule for the whole story. Record the
+      // delivery attempt, folding any recall coaching into its notes.
+      const d = delivery ?? {
+        inputMode,
+        answerText,
+        transcript: inputMode === 'voice' ? transcript : null,
+        audioUri,
+        evaluation,
+      };
+      if (!d.evaluation) return;
+      const merged: Evaluation = recallEvaluation
+        ? {
+            ...d.evaluation,
+            improvements: [
+              d.evaluation.improvements,
+              `Triggers & directions — ${recallEvaluation.summary}. ${recallEvaluation.improvements}`,
+            ]
+              .filter(Boolean)
+              .join('\n\n'),
+          }
+        : d.evaluation;
+      await recordAttempt(current.noteId, null, {
+        mode: d.inputMode,
+        answerText: d.answerText,
+        transcript: d.transcript,
+        audioUri: d.audioUri,
+        evaluation: merged,
+        rating,
+      });
+      advance();
+      return;
+    }
+
+    if (!evaluation) return;
     await recordAttempt(current.noteId, current.triggerId, {
       mode: inputMode,
       answerText,
@@ -330,25 +464,36 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
           ) : null}
 
           {/* Mode badge */}
-          <View
-            style={[
-              styles.modeBadge,
-              mode === 'A'
-                ? { backgroundColor: colors.accentTint }
-                : { backgroundColor: '#F2ECFB' },
-            ]}>
+          {isPersonalStory ? (
+            <View style={[styles.modeBadge, { backgroundColor: '#F2ECFB' }]}>
+              <View style={[styles.modeDot, { backgroundColor: '#6A3FB0' }]} />
+              <Txt variant="bodyStrong" style={{ fontSize: 12, color: '#6A3FB0' }}>
+                {inRecall
+                  ? 'Recall · when to tell it + where it goes'
+                  : 'For friends · tell it from the title'}
+              </Txt>
+            </View>
+          ) : (
             <View
               style={[
-                styles.modeDot,
-                { backgroundColor: mode === 'A' ? colors.accent : '#6A3FB0' },
-              ]}
-            />
-            <Txt
-              variant="bodyStrong"
-              style={{ fontSize: 12, color: mode === 'A' ? colors.accentInk : '#6A3FB0' }}>
-              {mode === 'A' ? 'Mode A · compare to your saved answer' : 'Mode B · AI drafts a model answer'}
-            </Txt>
-          </View>
+                styles.modeBadge,
+                mode === 'A'
+                  ? { backgroundColor: colors.accentTint }
+                  : { backgroundColor: '#F2ECFB' },
+              ]}>
+              <View
+                style={[
+                  styles.modeDot,
+                  { backgroundColor: mode === 'A' ? colors.accent : '#6A3FB0' },
+                ]}
+              />
+              <Txt
+                variant="bodyStrong"
+                style={{ fontSize: 12, color: mode === 'A' ? colors.accentInk : '#6A3FB0' }}>
+                {mode === 'A' ? 'Mode A · compare to your saved answer' : 'Mode B · AI drafts a model answer'}
+              </Txt>
+            </View>
+          )}
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <Pill label={current.category ?? 'General'} bg={c.bg} fg={c.fg} />
@@ -357,7 +502,18 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
             </Txt>
           </View>
 
-          <Txt style={styles.question}>{current.prompt}</Txt>
+          <Txt style={styles.question}>{inRecall ? RECALL_QUESTION : current.prompt}</Txt>
+
+          {isPersonalStory && !inRecall && step === 'answer' ? (
+            <Txt variant="small" style={{ marginTop: -8, marginBottom: 18 }}>
+              Tell it out loud the way you would to a friend — no script, just the story.
+            </Txt>
+          ) : null}
+          {inRecall && step === 'recall' ? (
+            <Txt variant="small" style={{ marginTop: -8, marginBottom: 18 }}>
+              From memory: what topics make this story come up, and how could you keep the chat going after?
+            </Txt>
+          ) : null}
 
           {error ? (
             <Txt variant="small" color={colors.danger} style={{ marginBottom: 12 }}>
@@ -365,14 +521,18 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
             </Txt>
           ) : null}
 
-          {step === 'evaluating' ? (
+          {step === 'evaluating' || step === 'recallEvaluating' ? (
             <Card style={{ alignItems: 'center', paddingVertical: 34, gap: 12 }}>
               <ActivityIndicator color={colors.accent} />
               <Txt variant="small">
-                {inputMode === 'voice' ? 'Transcribing and scoring…' : 'Scoring your answer…'}
+                {step === 'recallEvaluating'
+                  ? 'Checking your recall…'
+                  : inputMode === 'voice'
+                    ? 'Transcribing and scoring…'
+                    : 'Scoring your answer…'}
               </Txt>
             </Card>
-          ) : step === 'answer' ? (
+          ) : step === 'answer' || step === 'recall' ? (
             <AnswerStep
               inputMode={inputMode}
               setInputMode={setInputMode}
@@ -383,7 +543,34 @@ export function StudySession({ focus, onExit, showFilter }: StudySessionProps) {
               elapsed={elapsed}
               onStart={startRecording}
               onSubmit={submit}
-              onSkip={advance}
+              onSkip={step === 'recall' ? skipRecall : advance}
+              submitLabel={step === 'recall' ? 'Submit recall' : undefined}
+              skipLabel={step === 'recall' ? 'Skip' : undefined}
+              placeholder={
+                step === 'recall'
+                  ? 'e.g. this comes up when someone talks about… and I’d follow it with…'
+                  : undefined
+              }
+            />
+          ) : step === 'feedback' && isPersonalStory ? (
+            evaluation && (
+              <DeliveryFeedback
+                evaluation={evaluation}
+                inputMode={inputMode}
+                answerText={answerText}
+                sr={current.sr}
+                onContinue={hasRecall ? startRecall : undefined}
+                onRate={hasRecall ? undefined : rate}
+              />
+            )
+          ) : step === 'recallFeedback' ? (
+            <RecallFeedback
+              evaluation={recallEvaluation}
+              answerText={answerText}
+              triggers={recallTriggers}
+              hooks={recallHooks}
+              sr={current.sr}
+              onRate={rate}
             />
           ) : (
             evaluation && (
@@ -477,6 +664,9 @@ function AnswerStep({
   onStart,
   onSubmit,
   onSkip,
+  submitLabel = 'Submit for feedback',
+  skipLabel = 'Skip',
+  placeholder = "Type your answer as you'd say it in the room…",
 }: {
   inputMode: AnswerMode;
   setInputMode: (m: AnswerMode) => void;
@@ -488,6 +678,9 @@ function AnswerStep({
   onStart: () => void;
   onSubmit: () => void;
   onSkip: () => void;
+  submitLabel?: string;
+  skipLabel?: string;
+  placeholder?: string;
 }) {
   return (
     <>
@@ -552,7 +745,7 @@ function AnswerStep({
         <TextInput
           value={answerText}
           onChangeText={setAnswerText}
-          placeholder="Type your answer as you'd say it in the room…"
+          placeholder={placeholder}
           placeholderTextColor={colors.faint}
           multiline
           style={styles.answerInput}
@@ -560,9 +753,9 @@ function AnswerStep({
       )}
 
       <View style={styles.answerActions}>
-        <Button title="Skip" variant="secondary" onPress={onSkip} style={{ flex: 0.7 }} />
+        <Button title={skipLabel} variant="secondary" onPress={onSkip} style={{ flex: 0.7 }} />
         <Button
-          title="Submit for feedback"
+          title={submitLabel}
           onPress={onSubmit}
           icon={<ArrowRight size={17} color="#fff" />}
           style={{ flex: 1.6 }}
@@ -597,9 +790,6 @@ function FeedbackStep({
   sr: PracticeItem['sr'];
   onRate: (r: RatingKey) => void;
 }) {
-  const previews = previewIntervals(sr);
-  const ratings: RatingKey[] = ['again', 'hard', 'good', 'easy'];
-
   return (
     <>
       {/* Your answer */}
@@ -694,6 +884,198 @@ function FeedbackStep({
       ) : null}
 
       {/* Self-rating */}
+      <RatingGrid sr={sr} onRate={onRate} />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Personal story — delivery feedback (act 1) + recall feedback (act 2)
+// ---------------------------------------------------------------------------
+
+/** The AI score + strengths/improvements card, reused across feedback screens. */
+function EvaluationCard({ evaluation, label }: { evaluation: Evaluation; label: string }) {
+  return (
+    <Card style={{ marginBottom: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+        <ScoreCircle score={evaluation.score} />
+        <View style={{ flex: 1 }}>
+          <Txt variant="label" style={{ marginBottom: 3 }}>
+            {label}
+          </Txt>
+          <Txt variant="title">{evaluation.summary}</Txt>
+        </View>
+      </View>
+      {evaluation.strengths ? (
+        <View style={{ marginBottom: 11 }}>
+          <View style={styles.fbHead}>
+            <View style={[styles.modeDot, { backgroundColor: colors.success }]} />
+            <Txt variant="bodyStrong" style={{ fontSize: 12, color: colors.success }}>
+              STRENGTHS
+            </Txt>
+          </View>
+          <Txt variant="body" style={{ color: colors.text }}>
+            {evaluation.strengths}
+          </Txt>
+        </View>
+      ) : null}
+      {evaluation.improvements ? (
+        <View>
+          <View style={styles.fbHead}>
+            <View style={[styles.modeDot, { backgroundColor: colors.warn }]} />
+            <Txt variant="bodyStrong" style={{ fontSize: 12, color: colors.warn }}>
+              TO IMPROVE
+            </Txt>
+          </View>
+          <Txt variant="body" style={{ color: colors.text }}>
+            {evaluation.improvements}
+          </Txt>
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+/** Read-only card showing what the user said in a phase. */
+function SaidCard({
+  label,
+  inputMode,
+  answerText,
+}: {
+  label: string;
+  inputMode: AnswerMode;
+  answerText: string;
+}) {
+  return (
+    <Card style={{ marginBottom: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 9 }}>
+        <Txt variant="label">{label}</Txt>
+        <View style={styles.smallTag}>
+          <Txt variant="monoSmall" style={{ fontSize: 10 }}>
+            {inputMode === 'voice' ? 'voice · transcribed' : 'text'}
+          </Txt>
+        </View>
+      </View>
+      <Txt variant="body" style={{ color: colors.text }}>
+        {answerText || '—'}
+      </Txt>
+    </Card>
+  );
+}
+
+/**
+ * Act 1 for a personal story: how you delivered it. If the story has triggers /
+ * directions to recall, offer "Continue"; otherwise show the rating grid here.
+ */
+function DeliveryFeedback({
+  evaluation,
+  inputMode,
+  answerText,
+  sr,
+  onContinue,
+  onRate,
+}: {
+  evaluation: Evaluation;
+  inputMode: AnswerMode;
+  answerText: string;
+  sr: PracticeItem['sr'];
+  onContinue?: () => void;
+  onRate?: (r: RatingKey) => void;
+}) {
+  return (
+    <>
+      <SaidCard label="HOW YOU TOLD IT" inputMode={inputMode} answerText={answerText} />
+      <EvaluationCard evaluation={evaluation} label="DELIVERY · HOW IT LANDED" />
+      {onContinue ? (
+        <Button
+          title="Next: when to tell it →"
+          onPress={onContinue}
+          icon={<ArrowRight size={17} color="#fff" />}
+        />
+      ) : onRate ? (
+        <RatingGrid sr={sr} onRate={onRate} />
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Act 2 for a personal story: recall of its triggers + conversation directions.
+ * Always reveals the saved cues, then the single self-rating for the story.
+ */
+function RecallFeedback({
+  evaluation,
+  answerText,
+  triggers,
+  hooks,
+  sr,
+  onRate,
+}: {
+  evaluation: Evaluation | null;
+  answerText: string;
+  triggers: string[];
+  hooks: string[];
+  sr: PracticeItem['sr'];
+  onRate: (r: RatingKey) => void;
+}) {
+  return (
+    <>
+      {evaluation ? (
+        <>
+          <SaidCard label="WHAT YOU RECALLED" inputMode="text" answerText={answerText} />
+          <EvaluationCard evaluation={evaluation} label="RECALL · CUES & DIRECTIONS" />
+        </>
+      ) : null}
+
+      {triggers.length > 0 ? (
+        <Card style={{ marginBottom: 12 }}>
+          <Txt variant="label" style={{ marginBottom: 9 }}>
+            TRIGGERS · WHEN TO TELL IT
+          </Txt>
+          {triggers.map((t, i) => (
+            <View key={i} style={styles.cueRow}>
+              <View style={[styles.modeDot, { backgroundColor: '#6A3FB0', marginTop: 7 }]} />
+              <Txt variant="body" style={{ flex: 1, color: colors.text }}>
+                {t}
+              </Txt>
+            </View>
+          ))}
+        </Card>
+      ) : null}
+
+      {hooks.length > 0 ? (
+        <Card style={{ marginBottom: 12 }}>
+          <Txt variant="label" style={{ marginBottom: 9 }}>
+            DIRECTIONS · KEEP IT GOING
+          </Txt>
+          {hooks.map((h, i) => (
+            <View key={i} style={styles.cueRow}>
+              <View style={[styles.modeDot, { backgroundColor: colors.accent, marginTop: 7 }]} />
+              <Txt variant="body" style={{ flex: 1, color: colors.text }}>
+                {h}
+              </Txt>
+            </View>
+          ))}
+        </Card>
+      ) : null}
+
+      <RatingGrid sr={sr} onRate={onRate} />
+    </>
+  );
+}
+
+/** The Anki-style self-rating buttons that set the next review. */
+function RatingGrid({
+  sr,
+  onRate,
+}: {
+  sr: PracticeItem['sr'];
+  onRate: (r: RatingKey) => void;
+}) {
+  const previews = previewIntervals(sr);
+  const ratings: RatingKey[] = ['again', 'hard', 'good', 'easy'];
+  return (
+    <>
       <Txt variant="title" style={{ marginTop: 4 }}>
         How did it actually go?
       </Txt>
@@ -862,6 +1244,7 @@ const styles = StyleSheet.create({
   answerActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
   smallTag: { backgroundColor: '#F0EEE9', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
   fbHead: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 5 },
+  cueRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, paddingVertical: 5 },
   scoreCircle: {
     width: 60,
     height: 60,

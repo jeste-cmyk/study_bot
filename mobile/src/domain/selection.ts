@@ -20,6 +20,7 @@ import {
   type Note,
   type NoteKind,
   type SRState,
+  type StoryMode,
 } from './types';
 
 export interface PracticeFilter {
@@ -31,15 +32,24 @@ export interface PracticeFilter {
 export interface PracticeItem {
   key: string; // unique queue key (noteId, or `${noteId}:${triggerId}`)
   noteId: string;
-  triggerId: string | null; // null for questions
+  triggerId: string | null; // null for questions and personal-story delivery cards
   kind: NoteKind;
-  prompt: string; // the question text, or the story trigger text
-  reference: string | null; // question reference, or the story's combined reference
+  prompt: string; // the question text, the interview-story trigger, or a personal story's title
+  reference: string | null; // question reference, or the story's storytelling version
   category: Category | null;
   company: string | null;
   difficulty: Difficulty | null;
   sr: SRState;
   attempts: Attempt[];
+  /** Set for story items, so the practice loop can pick the right coach/flow. */
+  storyMode?: StoryMode;
+  /**
+   * Personal delivery cards only: the saved trigger cues (when to tell it) and
+   * conversation directions (where to take the chat), quizzed by recall after
+   * the story is told.
+   */
+  recallTriggers?: string[];
+  conversationHooks?: string[];
 }
 
 /** Expand the bank into practisable items, skipping drafts. */
@@ -61,6 +71,25 @@ export function toPracticeItems(notes: Note[]): PracticeItem[] {
         sr: n.sr,
         attempts: n.attempts,
       });
+    } else if (n.mode === 'personal') {
+      // Personal: one card for the whole story, prompted by its title and graded
+      // on delivery. Triggers + directions become a recall quiz after telling it.
+      items.push({
+        key: n.id,
+        noteId: n.id,
+        triggerId: null,
+        kind: 'story',
+        prompt: n.title.trim() || 'Untitled story',
+        reference: storyReference(n),
+        category: n.category,
+        company: null,
+        difficulty: n.difficulty,
+        sr: n.sr,
+        attempts: n.attempts,
+        storyMode: 'personal',
+        recallTriggers: n.triggers.map((t) => t.text),
+        conversationHooks: n.conversationHooks,
+      });
     } else {
       const reference = storyReference(n);
       for (const t of n.triggers) {
@@ -76,6 +105,7 @@ export function toPracticeItems(notes: Note[]): PracticeItem[] {
           difficulty: n.difficulty,
           sr: t.sr,
           attempts: t.attempts,
+          storyMode: 'interview',
         });
       }
     }

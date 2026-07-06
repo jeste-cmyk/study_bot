@@ -22,6 +22,7 @@ import type {
   StoryMode,
   StoryTrigger,
 } from '@/domain/types';
+import { initialSR } from '@/domain/spacedRepetition';
 import { supabase } from './supabaseClient';
 import { seedNotes } from './seed';
 
@@ -81,6 +82,21 @@ function migrateStoryContent(raw: any): {
 }
 
 /**
+ * The story-level schedule + delivery attempts (personal mode). Absent on
+ * legacy records → start fresh so the story is immediately practiseable.
+ */
+function migrateStorySchedule(raw: any): { sr: SRState; attempts: Attempt[] } {
+  const sr: SRState =
+    raw?.sr && typeof raw.sr === 'object'
+      ? (raw.sr as SRState)
+      : initialSR(raw?.createdAt ? new Date(raw.createdAt) : undefined);
+  const attempts: Attempt[] = Array.isArray(raw?.attempts)
+    ? raw.attempts.map((a: Attempt) => ({ ...a, triggerId: a.triggerId ?? null }))
+    : [];
+  return { sr, attempts };
+}
+
+/**
  * Normalise notes loaded from storage so older records (saved before stories /
  * drafts / the free-text story rewrite existed) keep working without a
  * migration.
@@ -104,9 +120,11 @@ function normalizeNote(raw: any): Note {
         attempts: (t.attempts ?? []).map((a) => ({ ...a, triggerId: a.triggerId ?? t.id })),
       })),
       conversationHooks,
+      ...migrateStorySchedule(raw),
       category: raw.category ?? null,
       difficulty: raw.difficulty ?? null,
       tags: raw.tags ?? [],
+      photos: Array.isArray(raw.photos) ? raw.photos.map(String) : [],
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     };
@@ -116,6 +134,7 @@ function normalizeNote(raw: any): Note {
     ...q,
     kind: 'question',
     status: q.status ?? 'ready',
+    photos: Array.isArray(q.photos) ? q.photos.map(String) : [],
     attempts: (q.attempts ?? []).map((a) => ({ ...a, triggerId: a.triggerId ?? null })),
   };
 }
@@ -182,6 +201,8 @@ type StoryPayload = {
   score: number | null;
   triggers: StoryTrigger[];
   conversationHooks?: string[];
+  sr?: SRState; // story-level schedule (personal mode)
+  attempts?: Attempt[]; // story-level delivery attempts (personal mode)
 };
 
 type NoteRow = {
@@ -195,6 +216,7 @@ type NoteRow = {
   company: string | null;
   difficulty: string | null;
   tags: string[] | null;
+  photos: string[] | null;
   sr: SRState | null;
   story: StoryPayload | null;
   created_at: string;
@@ -243,6 +265,7 @@ const rowToNote = (r: NoteRow): Note => {
     category: r.category as Question['category'],
     difficulty: r.difficulty as Question['difficulty'],
     tags: r.tags ?? [],
+    photos: r.photos ?? [],
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -263,6 +286,7 @@ const rowToNote = (r: NoteRow): Note => {
         attempts: (t.attempts ?? []).map((a) => ({ ...a, triggerId: a.triggerId ?? t.id })),
       })),
       conversationHooks,
+      ...migrateStorySchedule({ ...r.story, createdAt: r.created_at }),
     };
   }
 
@@ -292,6 +316,7 @@ const noteToRow = (n: Note): Omit<NoteRow, 'attempts'> => {
       company: null,
       difficulty: n.difficulty,
       tags: n.tags,
+      photos: n.photos,
       sr: null,
       story: {
         mode: n.mode,
@@ -301,6 +326,8 @@ const noteToRow = (n: Note): Omit<NoteRow, 'attempts'> => {
         score: n.score,
         triggers: n.triggers,
         conversationHooks: n.conversationHooks,
+        sr: n.sr,
+        attempts: n.attempts,
       },
       created_at: n.createdAt,
       updated_at: n.updatedAt,
@@ -317,6 +344,7 @@ const noteToRow = (n: Note): Omit<NoteRow, 'attempts'> => {
     company: n.company,
     difficulty: n.difficulty,
     tags: n.tags,
+    photos: n.photos,
     sr: n.sr,
     story: null,
     created_at: n.createdAt,

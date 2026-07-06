@@ -14,12 +14,24 @@
 import { env, isAiConfigured } from '@/config/env';
 import type { StoryMode } from '@/domain/types';
 
+/**
+ * How to grade an answer:
+ * - `undefined` — the default interview/question grading (Mode A vs. reference,
+ *   or Mode B where the AI also drafts a model answer).
+ * - `delivery`  — a personal story told out loud: grade delivery + naturalness,
+ *   not structure. `reference` holds the story's polished version (facts only).
+ * - `recall`    — after telling a personal story, the user recalls its triggers
+ *   and conversation directions. `reference` holds the saved cues to check against.
+ */
+export type EvaluationFocus = 'delivery' | 'recall';
+
 export interface EvaluationInput {
   question: string;
   reference: string | null; // present ⇒ Mode A
   answer: string;
   category?: string | null;
   company?: string | null;
+  focus?: EvaluationFocus;
 }
 
 export interface Evaluation {
@@ -157,10 +169,11 @@ export async function evaluateAnswer(input: EvaluationInput): Promise<Evaluation
   return localEvaluation(input, mode);
 }
 
-async function evaluateWithOpenAI(
+/** The default interview/question grader (Mode A vs. reference, or Mode B). */
+function buildInterviewEvaluationPrompt(
   input: EvaluationInput,
   mode: 'A' | 'B',
-): Promise<Evaluation> {
+): { sys: string; user: string } {
   const sys =
     'You are an exacting interview coach. Grade the candidate answer on a 1-10 ' +
     'scale and give terse, specific, actionable feedback. Respond ONLY with JSON ' +
@@ -184,6 +197,70 @@ async function evaluateWithOpenAI(
   ]
     .filter(Boolean)
     .join('\n\n');
+
+  return { sys, user };
+}
+
+/**
+ * Personal-story graders. Two focuses:
+ * - `delivery` — how naturally the story was told out loud (pacing, flow, how
+ *   human and conversational it sounds), NOT interview structure or metrics.
+ * - `recall`   — whether the user can recall, in their own words, when to bring
+ *   the story up (its triggers) and where to take the conversation next.
+ */
+function buildStoryEvaluationPrompt(
+  input: EvaluationInput,
+  focus: EvaluationFocus,
+): { sys: string; user: string } {
+  const schema =
+    '{ "score": number 1-10, "summary": short headline, "strengths": 1-2 sentences, "improvements": 1-2 sentences }';
+
+  if (focus === 'recall') {
+    const sys =
+      'You are a conversation coach. After telling a personal story, someone ' +
+      'should know WHEN they would naturally bring it up (its triggers) and WHERE ' +
+      'they could steer the conversation afterwards (directions/hooks). They just ' +
+      'tried to recall these from memory. Compare what they said to the saved cues ' +
+      'below. Reward capturing the GIST in their own words (not verbatim); coach ' +
+      'what they missed or could add. Respond ONLY with JSON matching the schema.';
+    const user = [
+      `STORY: ${input.question}`,
+      `SAVED CUES (triggers = when to tell it; directions = where to take the chat):\n${input.reference ?? '(none saved)'}`,
+      `WHAT THEY RECALLED:\n${input.answer}`,
+      `Return JSON: ${schema}`,
+    ].join('\n\n');
+    return { sys, user };
+  }
+
+  const sys =
+    'You are a storytelling delivery coach. Someone is practising telling a ' +
+    'personal story out loud, as they would to a friend, from just its title. ' +
+    'Grade DELIVERY and NATURALNESS — pacing, flow, vividness, and whether it ' +
+    'would land in a real conversation — NOT interview structure, STAR, or ' +
+    'metrics. Judge how they told it, not whether it matches a script; the ' +
+    'reference is only there so you know the facts. Reward a natural, human, ' +
+    'well-paced telling; flag rambling, a flat opening, or a weak ending. ' +
+    'Respond ONLY with JSON matching the schema.';
+  const user = [
+    `STORY TITLE / PROMPT: ${input.question}`,
+    input.reference
+      ? `THEIR POLISHED VERSION (facts for reference, not a script to match):\n${input.reference}`
+      : '',
+    `HOW THEY TOLD IT:\n${input.answer}`,
+    `Return JSON: ${schema}`,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+  return { sys, user };
+}
+
+async function evaluateWithOpenAI(
+  input: EvaluationInput,
+  mode: 'A' | 'B',
+): Promise<Evaluation> {
+  const { sys, user } = input.focus
+    ? buildStoryEvaluationPrompt(input, input.focus)
+    : buildInterviewEvaluationPrompt(input, mode);
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -473,6 +550,8 @@ function localTranscriptStub(): string {
 
 /** Cheap, deterministic heuristic so the loop is exercisable without a key. */
 function localEvaluation(input: EvaluationInput, mode: 'A' | 'B'): Evaluation {
+  if (input.focus) return localStoryEvaluation(input, input.focus);
+
   const words = input.answer.trim().split(/\s+/).filter(Boolean);
   const len = words.length;
 
@@ -506,6 +585,55 @@ function localEvaluation(input: EvaluationInput, mode: 'A' | 'B'): Evaluation {
       : null;
 
   return { score, summary, strengths, improvements, generatedReference };
+}
+
+/**
+ * Deterministic personal-story grading for local-first mode (no AI key).
+ * Delivery rewards a substantive, well-paced telling; recall rewards overlap
+ * with the saved trigger/direction cues.
+ */
+function localStoryEvaluation(input: EvaluationInput, focus: EvaluationFocus): Evaluation {
+  const words = input.answer.trim().split(/\s+/).filter(Boolean);
+  const len = words.length;
+
+  if (focus === 'recall') {
+    let score = 4;
+    if (len >= 15) score += 1;
+    if (input.reference) score += overlapBonus(input.answer, input.reference);
+    score = clampScore(score);
+    const strong = score >= 7;
+    return {
+      score,
+      summary: strong ? 'You know your cues' : 'Half the map is there',
+      strengths: strong
+        ? 'You named when this comes up and where the conversation can go next.'
+        : 'You recalled some of it — a couple of cues came through.',
+      improvements: strong
+        ? 'Keep a spare direction in your back pocket so it never dead-ends.'
+        : 'Name one or two more triggers, and a question you could ask to hand the conversation back. (Add an OpenAI key for tailored coaching.)',
+      generatedReference: null,
+    };
+  }
+
+  // delivery
+  let score = 4;
+  if (len >= 60) score += 2;
+  else if (len >= 30) score += 1;
+  if (len > 220) score -= 1; // rambling
+  score = clampScore(score);
+  const strong = score >= 7;
+  return {
+    score,
+    summary: strong ? 'Natural and easy to follow' : 'Told it — now make it land',
+    strengths:
+      len >= 30
+        ? 'Good, conversational flow — it sounds like you talking, not reciting.'
+        : 'Clear start, but it went by fast — there is more story to enjoy here.',
+    improvements:
+      'Open on a hook, slow down on the best beat, and land a clean ending line. ' +
+      'Say it like the person in front of you has never heard it. (Add an OpenAI key for tailored delivery coaching.)',
+    generatedReference: null,
+  };
 }
 
 /**

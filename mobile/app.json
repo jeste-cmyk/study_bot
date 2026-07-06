@@ -46,6 +46,12 @@
           "microphonePermission": "Recall uses the microphone so you can practice interview answers out loud."
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Recall accesses your photos so you can attach them to your notes."
+        }
+      ],
       "expo-secure-store",
       "expo-asset"
     ],

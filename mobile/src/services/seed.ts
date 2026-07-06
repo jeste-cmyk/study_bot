@@ -177,6 +177,7 @@ function seedQuestions(userId: string, now: Date): Question[] {
       company: s.company,
       difficulty: s.difficulty,
       tags: s.tags,
+      photos: [],
       createdAt,
       updatedAt: createdAt,
       sr: {
@@ -218,9 +219,12 @@ function seedStory(userId: string, now: Date): Story {
       attempts: [],
     })),
     conversationHooks: [],
+    sr: initialSR(now),
+    attempts: [],
     category: 'Behavioral',
     difficulty: 'Medium',
     tags: ['story', 'resilience'],
+    photos: [],
     createdAt,
     updatedAt: createdAt,
   };
@@ -256,9 +260,12 @@ function seedPersonalStory(userId: string, now: Date): Story {
       'Branch to a related story — a time a stranger unexpectedly helped you out.',
       'Pivot to an unrelated thread — where they’d travel next if they could.',
     ],
+    sr: initialSR(now),
+    attempts: [],
     category: null,
     difficulty: 'Easy',
     tags: ['story', 'travel'],
+    photos: [],
     createdAt,
     updatedAt: createdAt,
   };

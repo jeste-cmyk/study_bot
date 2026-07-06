@@ -94,6 +94,14 @@ export const PlusIcon = ({ size, color, strokeWidth }: IconProps) => (
   </Svg>
 );
 
+export const ImageIcon = ({ size, color, strokeWidth }: IconProps) => (
+  <Svg {...base(size, strokeWidth, color)}>
+    <Rect x="3" y="4" width="18" height="16" rx="2.5" />
+    <Circle cx="8.5" cy="9.5" r="1.8" />
+    <Path d="M4 17l4.5-4.5a2 2 0 0 1 2.8 0L20 21" />
+  </Svg>
+);
+
 export const SparkleIcon = ({ size, color, strokeWidth }: IconProps) => (
   <Svg {...base(size, strokeWidth, color)}>
     <Path d="M12 3.5 13.7 9 19 10.7 13.7 12.4 12 18 10.3 12.4 5 10.7 10.3 9 12 3.5Z" />

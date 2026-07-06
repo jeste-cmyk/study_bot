@@ -174,6 +174,33 @@ describe('recordAttempt', () => {
     expect(updated && isQuestion(updated) && updated.reference).toBe('the model answer');
   });
 
+  it('schedules a personal story at the story level, leaving triggers as cues', async () => {
+    const story = await useStore.getState().addNote({
+      kind: 'story',
+      mode: 'personal',
+      rawStory: 'the overnight bus',
+      triggers: ['travel disasters', 'getting lost'],
+    });
+    if (!isStory(story)) throw new Error('expected a story');
+
+    await useStore.getState().recordAttempt(story.id, null, {
+      mode: 'voice',
+      answerText: 'so I fell asleep on this bus…',
+      transcript: 'so I fell asleep on this bus…',
+      evaluation: EVALUATION,
+      rating: 'good',
+    });
+
+    const updated = useStore.getState().getNote(story.id);
+    if (!updated || !isStory(updated)) throw new Error('expected a story');
+    expect(updated.attempts).toHaveLength(1);
+    expect(updated.attempts[0].triggerId).toBeNull();
+    expect(updated.sr.reps).toBe(1);
+    // Triggers are recall cues now — untouched by delivery practice.
+    expect(updated.triggers.every((t) => t.attempts.length === 0)).toBe(true);
+    expect(updated.triggers.every((t) => t.sr.reps === 0)).toBe(true);
+  });
+
   it('only touches the practised trigger of a story', async () => {
     const story = await useStore.getState().addNote({
       kind: 'story',
